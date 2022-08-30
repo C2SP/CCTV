@@ -132,17 +132,39 @@ func TestVectors(t *testing.T) {
 		message := []byte(v.Message)
 		signature := mustDecodeHex(v.Signature)
 
-		if !ed25519consensus.Verify(publicKey, message, signature) {
-			t.Errorf("#%d: ZIP215 rejected signature", i)
+		// ZIP 215 rules accept all vectors where k is computed from the
+		// provided R encoding. They reject reencoded_k vectors unless the
+		// public key has low order, in which case k does not matter.
+		if !v.F(ReencodedK) || v.F(LowOrderA) {
+			if !ed25519consensus.Verify(publicKey, message, signature) {
+				t.Errorf("#%d: ZIP215 rejected signature", i)
+			}
+		} else {
+			if ed25519consensus.Verify(publicKey, message, signature) {
+				t.Errorf("#%d: ZIP215 accepted re-encoded signature", i)
+			}
 		}
 
+		// ReencodedVerify behavior is equivalent to ZIP 215, but non-canonical
+		// Rs are re-encoded.
+		if !v.F(NonCanonicalR) || v.F(ReencodedK) || v.F(LowOrderA) {
+			if !ReencodedVerify(publicKey, message, signature) {
+				t.Errorf("#%d: ReencodedVerify rejected signature", i)
+			}
+		} else {
+			if ReencodedVerify(publicKey, message, signature) {
+				t.Errorf("#%d: ReencodedVerify accepted signature", i)
+			}
+		}
+
+		// "Classic" rules reject non-canonical Rs and low order residues.
 		if !v.F(LowOrderResidue) && !v.F(NonCanonicalR) {
 			if !ed25519.Verify(publicKey, message, signature) {
-				t.Errorf("#%d: crypto/ed25519 unexpectedly rejected signature", i)
+				t.Errorf("#%d: crypto/ed25519 unexpectedly rejected signature: %v", i, v.Flags)
 			}
 		} else {
 			if ed25519.Verify(publicKey, message, signature) {
-				t.Errorf("#%d: crypto/ed25519 unexpectedly accepted signature", i)
+				t.Errorf("#%d: crypto/ed25519 unexpectedly accepted signature: %v", i, v.Flags)
 			}
 		}
 	}

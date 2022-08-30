@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"filippo.io/edwards25519"
 )
@@ -49,6 +50,7 @@ var LowOrderPoints = []*LowOrderPoint{
 }
 
 type Vector struct {
+	Number    int    `json:"number"`
 	PublicKey string `json:"key"`
 	Signature string `json:"sig"`
 	Message   string `json:"msg"`
@@ -68,11 +70,15 @@ const (
 	LowOrderComponentA
 	// LowOrderResidue is true when the low order components of R and [k]A don't
 	// add up to I. That makes these signatures verify only with the formulae
-	// that multiply by the cofactor.
+	// that multiply by the cofactor. Note that it does not take k re-encoding
+	// into account.
 	LowOrderResidue
 	// NonCanonicalX is true when X is a non-canonical encoding.
 	NonCanonicalA
 	NonCanonicalR
+	// ReencodedK is true when k is computed from the canonical form of A/R
+	// even if they are non-canonical in the public key/signature.
+	ReencodedK
 )
 
 func (s Vector) F(f Flag) bool {
@@ -87,7 +93,7 @@ func (s *Vector) SetF(f Flag, b bool) {
 	}
 }
 
-func (f Flag) MarshalJSON() ([]byte, error) {
+func (f Flag) flags() []string {
 	var flags []string
 	if f&LowOrderR != 0 {
 		flags = append(flags, "low_order_R")
@@ -110,14 +116,32 @@ func (f Flag) MarshalJSON() ([]byte, error) {
 	if f&NonCanonicalR != 0 {
 		flags = append(flags, "non_canonical_R")
 	}
-	return json.Marshal(flags)
+	if f&ReencodedK != 0 {
+		flags = append(flags, "reencoded_k")
+	}
+	return flags
+}
+
+func (f Flag) MarshalJSON() ([]byte, error) {
+	return json.Marshal(f.flags())
+}
+
+func (f Flag) String() string {
+	return strings.Join(f.flags(), ", ")
 }
 
 func main() {
-	e := json.NewEncoder(os.Stdout)
+	f, err := os.Create("ed25519vectors.json")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	e := json.NewEncoder(f)
 	e.SetIndent("", "\t")
 	e.Encode(GenerateVectors())
 }
+
+//go:generate go run .
 
 // If jumbo is set, generate vectors for all k mod 8 values, not just the ones
 // that lead to a different low order residue.
@@ -137,7 +161,7 @@ func GenerateVectors() []Vector {
 
 	var vectors []Vector
 
-	addVector := func(lowA, lowR *LowOrderPoint, ncA, ncR []byte, sZero, rZero bool) {
+	addVector := func(lowA, lowR *LowOrderPoint, ncA, ncR []byte, sZero, rZero, reEncodeK bool) {
 		ss := edwards25519.NewScalar()
 		var AA []byte
 		if sZero {
@@ -173,10 +197,10 @@ func GenerateVectors() []Vector {
 		found := make(map[bool]bool) // LowOrderResidue: true
 		for kMod8 := byte(0); kMod8 < 8; kMod8++ {
 			message := "ed25519vectors"
-			k := computeK(AA, RR, message)
+			k := computeK(AA, RR, message, reEncodeK)
 			for t := 1; k.Bytes()[0]%8 != kMod8; t++ {
 				message = fmt.Sprintf("ed25519vectors %d", t)
-				k = computeK(AA, RR, message)
+				k = computeK(AA, RR, message, reEncodeK)
 			}
 
 			S := (&edwards25519.Scalar{}).MultiplyAdd(k, ss, rr)
@@ -184,6 +208,7 @@ func GenerateVectors() []Vector {
 			lowOrderResidue := !lowOrderComponentsAddUpToZero(lowA.Point, lowR.Point, k)
 			if !found[lowOrderResidue] || jumbo {
 				v := Vector{
+					Number:    len(vectors),
 					PublicKey: hex.EncodeToString(AA),
 					Signature: hex.EncodeToString(RR) + hex.EncodeToString(S.Bytes()),
 					Message:   message,
@@ -192,9 +217,12 @@ func GenerateVectors() []Vector {
 				v.SetF(LowOrderA, sZero)
 				v.SetF(LowOrderComponentR, lowR.Point.Equal(I) != 1)
 				v.SetF(LowOrderComponentA, lowA.Point.Equal(I) != 1)
-				v.SetF(LowOrderResidue, lowOrderResidue)
+				v.SetF(LowOrderResidue,
+					!lowOrderComponentsAddUpToZero(lowA.Point, lowR.Point,
+						computeK(AA, RR, message, false)))
 				v.SetF(NonCanonicalA, ncA != nil)
 				v.SetF(NonCanonicalR, ncR != nil)
+				v.SetF(ReencodedK, reEncodeK)
 				vectors = append(vectors, v)
 				found[lowOrderResidue] = true
 			}
@@ -203,21 +231,23 @@ func GenerateVectors() []Vector {
 
 	for _, lowA := range LowOrderPoints {
 		for _, lowR := range LowOrderPoints {
-			addVector(lowA, lowR, nil, nil, true, true)
-			addVector(lowA, lowR, nil, nil, true, false)
-			addVector(lowA, lowR, nil, nil, false, true)
-			addVector(lowA, lowR, nil, nil, false, false)
+			addVector(lowA, lowR, nil, nil, true, true, false)
+			addVector(lowA, lowR, nil, nil, true, false, false)
+			addVector(lowA, lowR, nil, nil, false, true, false)
+			addVector(lowA, lowR, nil, nil, false, false, false)
 			for _, encodingA := range lowA.NonCanonicalEncodings {
-				addVector(lowA, lowR, encodingA, nil, true, true)
-				addVector(lowA, lowR, encodingA, nil, true, false)
+				addVector(lowA, lowR, encodingA, nil, true, true, false)
+				addVector(lowA, lowR, encodingA, nil, true, false, false)
+				addVector(lowA, lowR, encodingA, nil, true, false, true)
 			}
 			for _, encodingR := range lowR.NonCanonicalEncodings {
-				addVector(lowA, lowR, nil, encodingR, true, true)
-				addVector(lowA, lowR, nil, encodingR, false, true)
+				addVector(lowA, lowR, nil, encodingR, true, true, false)
+				addVector(lowA, lowR, nil, encodingR, false, true, false)
+				addVector(lowA, lowR, nil, encodingR, false, true, true)
 			}
 			for _, encodingA := range lowA.NonCanonicalEncodings {
 				for _, encodingR := range lowR.NonCanonicalEncodings {
-					addVector(lowA, lowR, encodingA, encodingR, true, true)
+					addVector(lowA, lowR, encodingA, encodingR, true, true, false)
 				}
 			}
 		}
@@ -225,7 +255,13 @@ func GenerateVectors() []Vector {
 	return vectors
 }
 
-func computeK(A, R []byte, message string) *edwards25519.Scalar {
+func computeK(A, R []byte, message string, reEncodeK bool) *edwards25519.Scalar {
+	if reEncodeK {
+		a, _ := (&edwards25519.Point{}).SetBytes(A)
+		A = a.Bytes()
+		r, _ := (&edwards25519.Point{}).SetBytes(R)
+		R = r.Bytes()
+	}
 	kh := sha512.New()
 	kh.Write(R)
 	kh.Write(A)
