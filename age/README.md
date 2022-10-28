@@ -3,6 +3,9 @@
 This directory contains a large set of test vectors for the age file encryption
 format, as well as a framework to easily generate them.
 
+For an example of how to use this test suite, check [the reference Go
+implementation](https://github.com/FiloSottile/age/blob/bf8d2a39/testkit_test.go).
+
 ## Test file format
 
 Each file in the `testdata` folder is a separate test vector, meant to be
