@@ -58,8 +58,8 @@ rejecting and accepting `low_order_residue` depending on what formula is used,
 and is silent on the rest.
 
 The most common verification behavior, derived from the "ref10" implementation
-and exhibited by Go and OpenSSL amongst others, is to reject `low_order_R` and
-`low_order_residue` and to accept everything else.
+and exhibited by Go and OpenSSL amongst others, is to reject `non_canonical_R`
+and `low_order_residue` and to accept everything else.
 
 ZIP215 rules require accepting all vectors.
 
