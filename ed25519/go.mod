@@ -1,4 +1,4 @@
-module filippo.io/mostly-harmless/ed25519vectors
+module c2sp.org/CCTV/ed25519
 
 go 1.19
 
