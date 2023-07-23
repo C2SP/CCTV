@@ -6,6 +6,26 @@ format, as well as a framework to easily generate them.
 For an example of how to use this test suite, check [the reference Go
 implementation](https://github.com/FiloSottile/age/blob/bf8d2a39/testkit_test.go).
 
+## Accessing the test vectors
+
+If testing a Go program, you can import the `c2sp.org/CCTV/age` module and use
+the embedded filesystem.
+
+Otherwise, you can use `git-subtree` to include a copy of the vectors in your
+project. The license allows this without attribution.
+
+```
+git fetch https://github.com/C2SP/CCTV
+TEMPDIR=$(mktemp -d)
+git worktree add $TEMPDIR FETCH_HEAD
+SPLIT=$(cd $TEMPDIR && git subtree split -P age/testdata --annotate 'testkit: ')
+git worktree remove $TEMPDIR
+git subtree add -P testkit $SPLIT
+```
+
+To update the vectors, repeat the process with `git subtree merge` instead of
+`git subtree add`.
+
 ## Test file format
 
 Each file in the `testdata` folder is a separate test vector, meant to be
