@@ -3,8 +3,26 @@
 This directory contains a large set of test vectors for the age file encryption
 format, as well as a framework to easily generate them.
 
+The test suite can be applied to any age implementation, regardless of the language
+it's implemented in, and the level of abstraction of its interface.
+For the simplest, most universal integration, the implementation can just attempt
+to decrypt the test files, check the operation only succeeds if `expect` is
+`success`, and compare the decrypted payload. Test vectors involving
+unimplemented features (such as passphrase encryption or armoring) can be ignored.
+
+These vectors can't be used to test the encryption direction end-to-end (because
+there is no strict specification for how to [reproducibly inject randomness](
+https://words.filippo.io/dispatches/avoid-the-randomness-from-the-sky/)
+in the process), however, they can be used to test that parsing and encoding
+operations round-trip in various edge cases. Specifically, `armored` vectors can
+be used to test round-trips of armor decode/encode (accounting for CRLF/LF and
+trailing and leading spaces tolerance), any vector that's not a `header failure`
+can be used to test round-trips of header decode/encode, and any `success` vector
+can be used to test round-trips of STREAM decrypt/encrypt (with the help of the
+`file key`).
+
 For an example of how to use this test suite, check [the reference Go
-implementation](https://github.com/FiloSottile/age/blob/bf8d2a39/testkit_test.go).
+implementation](https://github.com/FiloSottile/age/blob/980763a/testkit_test.go).
 
 ## Accessing the test vectors
 
