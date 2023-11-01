@@ -6,10 +6,10 @@ FIPS 203 (DRAFT).
 Like the [official intermediate values](https://csrc.nist.gov/csrc/media/Projects/post-quantum-cryptography/documents/example-files/PQC%20Intermediate%20Values.zip)
 from October 2023, these vectors implement the following two changes:
 
-    1. The order of the input i and j to the XOF at step 6 in
-       Algorithm 12 K-PKE.KeyGen() is switched.
-    2. The order of the input i and j to the XOF at step 6 in
-       Algorithm 13 K-PKE.Encrypt() is switched.
+1. The order of the input i and j to the XOF at step 6 in
+    Algorithm 12 K-PKE.KeyGen() is switched.
+2. The order of the input i and j to the XOF at step 6 in
+    Algorithm 13 K-PKE.Encrypt() is switched.
 
 This reverts [an unintentional change](https://groups.google.com/a/list.nist.gov/g/pqc-forum/c/s-C-zIAeKfE/m/eZJmXYsSAQAJ)
 and makes K-PKE consistent with Kyber round 3.
