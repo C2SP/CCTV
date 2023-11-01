@@ -9,21 +9,23 @@ Like the [official intermediate values](https://csrc.nist.gov/csrc/media/Project
 from October 2023, these vectors implement the following two changes:
 
 1. The order of the input i and j to the XOF at step 6 in
-    Algorithm 12 K-PKE.KeyGen() is switched.
+    Algorithm 12 (K-PKE.KeyGen) is switched.
 2. The order of the input i and j to the XOF at step 6 in
-    Algorithm 13 K-PKE.Encrypt() is switched.
+    Algorithm 13 (K-PKE.Encrypt) is switched.
 
 This reverts [an unintentional change](https://groups.google.com/a/list.nist.gov/g/pqc-forum/c/s-C-zIAeKfE/m/eZJmXYsSAQAJ)
 and makes K-PKE consistent with Kyber round 3.
 
-Each file covers KeyGen, Encrypt, Encaps, Decrypt, and Decaps, all executed on
-the same set of keys and messages.
+Each file covers ML-KEM.KeyGen, K-PKE.KeyGen, ML-KEM.Encaps, K-PKE.Encrypt,
+ML-KEM.Decaps, and K-PKE.Decrypt, all executed on the same set of keys and
+messages.
 
 Where values appear multiple times across algorithms, they are not repeated in
-the test files. (Props to the spec for maintaining a consistent lexical scope
-across algorithms! The one exception is that r is reused for the 32-byte
-K-PKE.Encrypt input and for the vector of polynomials sampled from it. The two
-are easily distinguished.)
+the test files. uᵈ and vᵈ are the u and v values from K-PKE.Decrypt, after they
+went through a Compress/Decompress cycle. (Props to the spec for maintaining a
+consistent lexical scope across algorithms! The one exception is that r is
+reused for the 32-byte K-PKE.Encrypt input and for the vector of polynomials
+sampled from it. The two are easily distinguished.)
 
 Byte strings are encoded in hex. Polynomials, NTT representatives, vectors, and
 matrixes are encoded with ByteEncode12 and then in hex. Some polynomials are
