@@ -2,8 +2,8 @@
 
 https://c2sp.org/CCTV/ML-KEM
 
-This is a set of detailed test vectors for ML-KEM, as specified in
-FIPS 203 (DRAFT).
+The files in this directory are a set of detailed test vectors for ML-KEM, as
+specified in FIPS 203 (DRAFT).
 
 Like the [official intermediate values](https://csrc.nist.gov/csrc/media/Projects/post-quantum-cryptography/documents/example-files/PQC%20Intermediate%20Values.zip)
 from October 2023, these vectors implement the following two changes:
@@ -32,6 +32,46 @@ matrixes are encoded with ByteEncode12 and then in hex. Some polynomials are
 also presented as an array of decimal coefficients to aid in the implementation
 of ByteEncode, NTT, and Compress.
 
+Implementers might also be interested in ["Enough Polynomials and Linear Algebra
+to Implement Kyber"](https://words.filippo.io/kyber-math/).
+
+## Accumulated pq-crystals vectors
+
+The `ref/test/test_vectors.c` program in the *standard* branch of
+github.com/pq-crystals/kyber produces 10 000 randomly generated tests, amounting
+to 300MB of output.
+
+Instead of checking in such a large amount of data, or running a binary as part
+of testing, implementations can generate the inputs from the deterministic RNG,
+and check that the output hashes to the expected value.
+
+The input format, as well as the output hash, are summarized below.
+
+The deterministic RNG is SHAKE-128 with an empty input. The RNG stream starts
+with `7f9c2ba4e88f827d616045507605853e`.
+
+For each test, the following values are drawn from the RNG in order:
+
+  * `d` for K-PKE.KeyGen
+  * `z` for ML-KEM.KeyGen
+  * `m` for ML-KEM.Encaps
+  * `ct` as an invalid input to ML-KEM.Decaps
+
+Then, the following values are written to a running SHAKE-128 instance in order:
+
+  * `ek` from ML-KEM.KeyGen
+  * `dk` from ML-KEM.KeyGen
+  * `ct` from ML-KEM.Encaps
+  * `k` from ML-KEM.Encaps (which should be checked to match the output of
+    ML-KEM.Decaps when provided with the correct `ct`)
+  * `k` from ML-KEM.Decaps when provided with the random `ct`
+
+The resulting hashes for 10 000 consecutive tests are:
+
+  * ML-KEM-512: `845913ea5a308b803c764a9ed8e9d814ca1fd9c82ba43c7b1e64b79c7a6ec8e4`
+  * ML-KEM-768: `f7db260e1137a742e05fe0db9525012812b004d29040a5b606aad3d134b548d3`
+  * ML-KEM-1024: `47ac888fe61544efc0518f46094b4f8a600965fc89822acb06dc7169d24f3543`
+
 ## Other Known Answer Tests
 
 The following vectors target FIPS 203 ipd with the Â fix described above.
@@ -47,6 +87,7 @@ The following vectors target FIPS 203 ipd with the Â fix described above.
           *Pseudorandom Ciphertext* were added to allow testing key generation,
           encapsulation, and failing decapsulation without reimplementing the RNG.
     * The test programs generate 10 000 vectors randomly.
+    * Accumulated vectors are available above.
 
 * [post-quantum-cryptography/KAT](https://github.com/post-quantum-cryptography/KAT/tree/main/MLKEM)
     * Each file contains 100 randomly generated vectors.
