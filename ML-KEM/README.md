@@ -31,3 +31,27 @@ Byte strings are encoded in hex. Polynomials, NTT representatives, vectors, and
 matrixes are encoded with ByteEncode12 and then in hex. Some polynomials are
 also presented as an array of decimal coefficients to aid in the implementation
 of ByteEncode, NTT, and Compress.
+
+## Other Known Answer Tests
+
+The following vectors target FIPS 203 ipd with the Â fix described above.
+
+* [NIST's Intermediate Values](https://csrc.nist.gov/Projects/post-quantum-cryptography/post-quantum-cryptography-standardization/example-files)
+    * Random values (such as d, z, and m) are equal. This is not spec compliant.
+    * Reproduced in the `NIST/` directory.
+
+* [pq-crystals](https://github.com/pq-crystals/kyber), *standard* branch
+    * First vector produced by `ref/test/test_vectors` reproduced in the
+      `pq-crystals/` directory.
+        * *Coins* (the concatenation of `d` and `z`), *Message*, and
+          *Pseudorandom Ciphertext* were added to allow testing key generation,
+          encapsulation, and failing decapsulation without reimplementing the RNG.
+    * The test programs generate 10 000 vectors randomly.
+
+* [post-quantum-cryptography/KAT](https://github.com/post-quantum-cryptography/KAT/tree/main/MLKEM)
+    * Each file contains 100 randomly generated vectors.
+
+The s2n-tls project includes
+[vectors](https://github.com/aws/s2n-tls/tree/a6517c5fe97b1aa1898f2233498613dd53735bd8/tests/unit/kats)
+for Kyber round 3 as well as some of the hybrid KEMs, including those used in
+the TLS draft.
