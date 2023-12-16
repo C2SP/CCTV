@@ -2,8 +2,43 @@
 
 https://c2sp.org/CCTV/ML-KEM
 
-The files in this directory are a set of detailed test vectors for ML-KEM, as
-specified in FIPS 203 (DRAFT).
+This directory collects resources for testing (and developing) ML-KEM
+implementations, as specified in FIPS 203.
+
+In particular, it provides:
+
+  * Intermediate values for testing and debugging each intermediate step and
+    partial algorithm.
+
+  * Accumulated vectors (derived from the reference pq-crystals implementation)
+    for testing randomly reachable edge cases without checking in large amounts
+    of data.
+
+  * References to other test vectors.
+
+Implementers might also be interested in ["Enough Polynomials and Linear Algebra
+to Implement Kyber"](https://words.filippo.io/kyber-math/).
+
+## Intermediate values
+
+The files in the `intermediate/` folder provide vectors for developing,
+debugging, and testing ML-KEM step-by-step.
+
+Each file lists every intermediate value of the ML-KEM.KeyGen, K-PKE.KeyGen,
+ML-KEM.Encaps, K-PKE.Encrypt, ML-KEM.Decaps, and K-PKE.Decrypt algorithms, all
+executed on the same set of keys and messages.
+
+Byte strings are encoded in hex. Polynomials, NTT representatives, vectors, and
+matrixes are encoded with ByteEncode12 and then in hex. Some polynomials are
+also presented as an array of decimal coefficients to aid in the implementation
+of ByteEncode, NTT, and Compress.
+
+Where values appear multiple times across algorithms, they are not repeated in
+the test files. uᵈ and vᵈ are the u and v values from K-PKE.Decrypt, after they
+went through a Compress/Decompress cycle. (Props to the spec for maintaining a
+consistent lexical scope across algorithms! The one exception is that r is
+reused for the 32-byte K-PKE.Encrypt input and for the vector of polynomials
+sampled from it. The two are easily distinguished.)
 
 Like the [official intermediate values](https://csrc.nist.gov/csrc/media/Projects/post-quantum-cryptography/documents/example-files/PQC%20Intermediate%20Values.zip)
 from October 2023, these vectors implement the following two changes:
@@ -16,46 +51,30 @@ from October 2023, these vectors implement the following two changes:
 This reverts [an unintentional change](https://groups.google.com/a/list.nist.gov/g/pqc-forum/c/s-C-zIAeKfE/m/eZJmXYsSAQAJ)
 and makes K-PKE consistent with Kyber round 3.
 
-Each file covers ML-KEM.KeyGen, K-PKE.KeyGen, ML-KEM.Encaps, K-PKE.Encrypt,
-ML-KEM.Decaps, and K-PKE.Decrypt, all executed on the same set of keys and
-messages.
-
-Where values appear multiple times across algorithms, they are not repeated in
-the test files. uᵈ and vᵈ are the u and v values from K-PKE.Decrypt, after they
-went through a Compress/Decompress cycle. (Props to the spec for maintaining a
-consistent lexical scope across algorithms! The one exception is that r is
-reused for the 32-byte K-PKE.Encrypt input and for the vector of polynomials
-sampled from it. The two are easily distinguished.)
-
-Byte strings are encoded in hex. Polynomials, NTT representatives, vectors, and
-matrixes are encoded with ByteEncode12 and then in hex. Some polynomials are
-also presented as an array of decimal coefficients to aid in the implementation
-of ByteEncode, NTT, and Compress.
-
-Implementers might also be interested in ["Enough Polynomials and Linear Algebra
-to Implement Kyber"](https://words.filippo.io/kyber-math/).
-
 ## Accumulated pq-crystals vectors
 
 The `ref/test/test_vectors.c` program in the *standard* branch of
-github.com/pq-crystals/kyber produces 10 000 randomly generated tests, amounting
-to 300MB of output.
+github.com/pq-crystals/kyber produces 10 000 randomly generated tests.
+Thanks to the limited range of fundamental integer types (at most 0–4096), this
+is sufficient to hit a lot of edge cases that don't need to be deliberately
+targeted with specific test vectors.
 
-Instead of checking in such a large amount of data, or running a binary as part
-of testing, implementations can generate the inputs from the deterministic RNG,
-and check that the output hashes to the expected value.
+The output of the three `test_vectors.c` programs amounts to 300MB. Instead of
+checking in such a large amount of data, or running a binary as part of testing,
+implementations can generate the test inputs from the deterministic RNG, and
+check that the test outputs hash to the expected value.
 
-The input format, as well as the output hash, are summarized below.
+The input format, output format, and output hash are provided below.
 
-The deterministic RNG is SHAKE-128 with an empty input. The RNG stream starts
-with `7f9c2ba4e88f827d616045507605853e`.
+The deterministic RNG is a single SHAKE-128 instance with an empty input.
+(The RNG stream starts with `7f9c2ba4e88f827d616045507605853e`.)
 
 For each test, the following values are drawn from the RNG in order:
 
   * `d` for K-PKE.KeyGen
   * `z` for ML-KEM.KeyGen
   * `m` for ML-KEM.Encaps
-  * `ct` as an invalid input to ML-KEM.Decaps
+  * `ct` as an invalid ciphertext input to ML-KEM.Decaps
 
 Then, the following values are written to a running SHAKE-128 instance in order:
 
@@ -71,6 +90,8 @@ The resulting hashes for 10 000 consecutive tests are:
   * ML-KEM-512: `845913ea5a308b803c764a9ed8e9d814ca1fd9c82ba43c7b1e64b79c7a6ec8e4`
   * ML-KEM-768: `f7db260e1137a742e05fe0db9525012812b004d29040a5b606aad3d134b548d3`
   * ML-KEM-1024: `47ac888fe61544efc0518f46094b4f8a600965fc89822acb06dc7169d24f3543`
+
+These vectors target FIPS 203 ipd with the Â fix, as described above.
 
 ## Other Known Answer Tests
 
