@@ -146,23 +146,15 @@ The resulting hashes for 1 000 000 consecutive tests are:
   * ML-KEM-768: `70090cc5842aad0ec43d5042c783fae9bc320c047b5dafcb6e134821db02384d`
   * ML-KEM-1024: `7ccc6d803739d3db3c5ce39c7130f459db32a199c6605e3be210e5a89d4c4b95`
 
-These vectors target FIPS 203 ipd with the Â fix, as described above.
-
 ## Other Known Answer Tests
 
-The following vectors target FIPS 203 ipd with the Â fix described above.
+The following vectors also target FIPS 203 ipd with the Â fix described above.
 
 * [NIST's Intermediate Values](https://csrc.nist.gov/Projects/post-quantum-cryptography/post-quantum-cryptography-standardization/example-files)
     * Random values (such as d, z, and m) are equal. This is not spec compliant.
-    * Reproduced in the `NIST/` directory.
 
 * [pq-crystals](https://github.com/pq-crystals/kyber), *standard* branch
-    * First vector produced by `ref/test/test_vectors` reproduced in the
-      `pq-crystals/` directory.
-        * *Coins* (the concatenation of `d` and `z`), *Message*, and
-          *Pseudorandom Ciphertext* were added to allow testing key generation,
-          encapsulation, and failing decapsulation without reimplementing the RNG.
-    * The test programs generate 10 000 vectors randomly.
+    * `ref/test/test_vectors.c` generates 10 000 vectors randomly.
     * Accumulated vectors are available above.
 
 * [post-quantum-cryptography/KAT](https://github.com/post-quantum-cryptography/KAT/tree/main/MLKEM)
