@@ -22,6 +22,9 @@ In particular, it provides:
 
   * References to other test vectors.
 
+All test vectors are made available under the terms of the
+[CC0 1.0](http://creativecommons.org/publicdomain/zero/1.0).
+
 Implementers might also be interested in ["Enough Polynomials and Linear Algebra
 to Implement Kyber"](https://words.filippo.io/kyber-math/).
 
