@@ -25,6 +25,22 @@ In particular, it provides:
 Implementers might also be interested in ["Enough Polynomials and Linear Algebra
 to Implement Kyber"](https://words.filippo.io/kyber-math/).
 
+### Changes from the FIPS 203 draft
+
+Like the [official intermediate values][NIST vectors] from October 2023, all the
+vectors in this directory implement the following two changes:
+
+1. The order of the input i and j to the XOF at step 6 in Algorithm 12
+   (K-PKE.KeyGen) is switched.
+2. The order of the input i and j to the XOF at step 6 in Algorithm 13
+   (K-PKE.Encrypt) is switched.
+
+This reverts [an unintentional change][pqc-forum discussion] that will probably
+be reverted in the final document and makes K-PKE consistent with Kyber round 3.
+
+[NIST vectors]: https://csrc.nist.gov/Projects/post-quantum-cryptography/post-quantum-cryptography-standardization/example-files
+[pqc-forum discussion]: https://groups.google.com/a/list.nist.gov/g/pqc-forum/c/s-C-zIAeKfE/m/eZJmXYsSAQAJ
+
 ## Intermediate values
 
 The files in the `intermediate/` folder provide vectors for developing,
@@ -45,17 +61,6 @@ went through a Compress/Decompress cycle. (Props to the spec for maintaining a
 consistent lexical scope across algorithms! The one exception is that r is
 reused for the 32-byte K-PKE.Encrypt input and for the vector of polynomials
 sampled from it. The two are easily distinguished.)
-
-Like the [official intermediate values](https://csrc.nist.gov/csrc/media/Projects/post-quantum-cryptography/documents/example-files/PQC%20Intermediate%20Values.zip)
-from October 2023, these vectors implement the following two changes:
-
-1. The order of the input i and j to the XOF at step 6 in
-    Algorithm 12 (K-PKE.KeyGen) is switched.
-2. The order of the input i and j to the XOF at step 6 in
-    Algorithm 13 (K-PKE.Encrypt) is switched.
-
-This reverts [an unintentional change](https://groups.google.com/a/list.nist.gov/g/pqc-forum/c/s-C-zIAeKfE/m/eZJmXYsSAQAJ)
-and makes K-PKE consistent with Kyber round 3.
 
 ## Bad encapsulation keys
 
