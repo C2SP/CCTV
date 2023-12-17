@@ -12,6 +12,8 @@ In particular, it provides:
 
   * "Unlucky" vectors that require an unusually large number of XOF reads.
 
+  * Vectors that fail if `strcmp()` is used in ML-KEM.Decaps.
+
   * Accumulated vectors (derived from the reference pq-crystals implementation)
     for testing randomly reachable edge cases without checking in large amounts
     of data.
@@ -71,6 +73,17 @@ If for some reason an implementation needs to draw a fixed amount of bytes from
 the XOF, at least 704 bytes are necessary for [a negligible probability (~
 2⁻¹²⁸)](https://www.wolframalpha.com/input?i=binomcdf%28469%2C+3329%2F4096%2C+255%29)
 of failure.
+
+## `strcmp` vectors
+
+In ML-KEM.Decaps the ciphertext is compared with the output of K-PKE.Encrypt for
+implicit rejection. If an implementation were to use `strcmp()` for that
+comparison it would fail to reject some ciphertexts if a zero byte terminates
+the comparison early.
+
+The files in the `strcmp/` folder provide test vectors that exercise this edge
+case. The chance of it occurring randomly is 2⁻¹⁶, and it is not covered by the
+pq-crystals vectors.
 
 ## Accumulated pq-crystals vectors
 
