@@ -10,6 +10,8 @@ In particular, it provides:
   * Intermediate values for testing and debugging each intermediate step and
     partial algorithm.
 
+  * "Unlucky" vectors that require an unusually large number of XOF reads.
+
   * Accumulated vectors (derived from the reference pq-crystals implementation)
     for testing randomly reachable edge cases without checking in large amounts
     of data.
@@ -50,6 +52,25 @@ from October 2023, these vectors implement the following two changes:
 
 This reverts [an unintentional change](https://groups.google.com/a/list.nist.gov/g/pqc-forum/c/s-C-zIAeKfE/m/eZJmXYsSAQAJ)
 and makes K-PKE consistent with Kyber round 3.
+
+## Unlucky NTT sampling vector
+
+The SampleNTT algorithm reads a variable number of bytes from an Extendable
+Output Function to perform rejection sampling. The files in the `unlucky/`
+folder provide test vectors that cause many more rejections than usual.
+
+In particular, these vectors require reading more than 575 bytes from the
+SHAKE-128 XOF in SampleNTT, which would ordinarily happen [with probability
+2⁻³⁸](https://www.wolframalpha.com/input?i=binomcdf%28384%2C+3329%2F4096%2C+255%29).
+
+Note that these vectors can be run through a regular deterministic ML-KEM
+testing API (i.e. one that injects the `d`, `z`, `m` random values) since they
+were bruteforced at the level of the `d` value.
+
+If for some reason an implementation needs to draw a fixed amount of bytes from
+the XOF, at least 704 bytes are necessary for [a negligible probability (~
+2⁻¹²⁸)](https://www.wolframalpha.com/input?i=binomcdf%28469%2C+3329%2F4096%2C+255%29)
+of failure.
 
 ## Accumulated pq-crystals vectors
 
