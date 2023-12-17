@@ -10,6 +10,8 @@ In particular, it provides:
   * Intermediate values for testing and debugging each intermediate step and
     partial algorithm.
 
+  * Negative test vectors for invalid encapsulation keys.
+
   * "Unlucky" vectors that require an unusually large number of XOF reads.
 
   * Vectors that fail if `strcmp()` is used in ML-KEM.Decaps.
@@ -54,6 +56,19 @@ from October 2023, these vectors implement the following two changes:
 
 This reverts [an unintentional change](https://groups.google.com/a/list.nist.gov/g/pqc-forum/c/s-C-zIAeKfE/m/eZJmXYsSAQAJ)
 and makes K-PKE consistent with Kyber round 3.
+
+## Bad encapsulation keys
+
+Section 6.2 of FIPS 203 ipd (ML-KEM Encapsulation) requires input validation on
+the encapsulation key, checking that all encoded polynomial coefficients are
+reduced modulo the field prime (the "*Modulus check*").
+
+The files in the `modulus/` folder provide invalid ML-KEM.Encaps inputs,
+hex-encoded, one per line. Every value in the range q to 2¹²-1 and every
+position in the key is tested individually.
+
+The vectors share most of the coefficients so that they compress from 1–3 MiB
+down to 12–28 KiB.
 
 ## Unlucky NTT sampling vector
 
