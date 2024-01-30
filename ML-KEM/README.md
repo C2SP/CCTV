@@ -1,4 +1,4 @@
-# ML-KEM Intermediate values
+# ML-KEM test vectors
 
 https://c2sp.org/CCTV/ML-KEM
 
