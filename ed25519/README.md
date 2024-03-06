@@ -9,6 +9,7 @@ security properties that require rejecting some or all of these signatures.
 
 See https://hdevalence.ca/blog/2020-10-04-its-25519am for more details. This set
 of vectors is an extension of those discussed in that article.
+See also https://eprint.iacr.org/2020/823 for the extra security properties.
 
 ## Vectors format
 
