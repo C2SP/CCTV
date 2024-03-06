@@ -53,9 +53,9 @@ what edge cases the vector exercises.
 
 ## Ecosystem behaviors
 
-RFC8032 requires rejecting `non_canonical_A` and `non_canonical_R`, allows both
-rejecting and accepting `low_order_residue` depending on what formula is used,
-and is silent on the rest.
+RFC8032 and FIPS 186-5 require rejecting `non_canonical_A` and `non_canonical_R`,
+allow both rejecting or accepting `low_order_residue` depending on what formula
+is used, and are silent on the rest.
 
 The most common verification behavior, derived from the "ref10" implementation
 and exhibited by Go and OpenSSL amongst others, is to reject `non_canonical_R`
