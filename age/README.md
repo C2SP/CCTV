@@ -139,7 +139,8 @@ go generate ./...
 
 ## License
 
-The vectors in the `testdata` folder are available under the terms of the
+The vectors in the `testdata` folder and the files in this top-level directory
+are available under the terms of the
 [Zero-Clause BSD](https://opensource.org/licenses/0BSD) (reproduced below),
 [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/), or
 [Unlicense](https://unlicense.org/) license, to your choice.
