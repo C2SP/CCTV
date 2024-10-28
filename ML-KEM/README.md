@@ -1,26 +1,26 @@
 # ML-KEM test vectors
 
-https://c2sp.org/CCTV/ML-KEM
+[https://c2sp.org/CCTV/ML-KEM](https://c2sp.org/CCTV/ML-KEM)
 
 This directory collects resources for testing (and developing) ML-KEM
 implementations, as specified in FIPS 203.
 
 In particular, it provides:
 
-  * Intermediate values for testing and debugging each intermediate step and
-    partial algorithm.
+* Intermediate values for testing and debugging each intermediate step and
+partial algorithm.
 
-  * Negative test vectors for invalid encapsulation keys.
+* Negative test vectors for invalid encapsulation keys.
 
-  * "Unlucky" vectors that require an unusually large number of XOF reads.
+* "Unlucky" vectors that require an unusually large number of XOF reads.
 
-  * Vectors that fail if `strcmp()` is used in ML-KEM.Decaps.
+* Vectors that fail if `strcmp()` is used in ML-KEM.Decaps.
 
-  * Accumulated vectors (derived from the reference pq-crystals implementation)
-    for testing randomly reachable edge cases without checking in large amounts
-    of data, including an extended run of one million tests.
+* Accumulated vectors (derived from the reference pq-crystals implementation)
+for testing randomly reachable edge cases without checking in large amounts
+of data, including an extended run of one million tests.
 
-  * References to other test vectors.
+* References to other test vectors.
 
 All test vectors are made available under the terms of the
 [CC0 1.0](http://creativecommons.org/publicdomain/zero/1.0).
@@ -38,8 +38,9 @@ vectors in this directory implement the following two changes:
 2. The order of the input i and j to the XOF at step 6 in Algorithm 13
    (K-PKE.Encrypt) is switched.
 
-This reverts [an unintentional change][pqc-forum discussion] that will probably
-be reverted in the final document and makes K-PKE consistent with Kyber round 3.
+This reverts [an unintentional change][pqc-forum discussion] that is also reverted in the final document and makes K-PKE consistent with Kyber round 3.
+
+Moreover, the value of `k` is now appended to the key seed `d` before deriving it with SHA3-512.
 
 [NIST vectors]: https://csrc.nist.gov/Projects/post-quantum-cryptography/post-quantum-cryptography-standardization/example-files
 [pqc-forum discussion]: https://groups.google.com/a/list.nist.gov/g/pqc-forum/c/s-C-zIAeKfE/m/eZJmXYsSAQAJ
@@ -128,31 +129,30 @@ The deterministic RNG is a single SHAKE-128 instance with an empty input.
 
 For each test, the following values are drawn from the RNG in order:
 
-  * `d` for K-PKE.KeyGen
-  * `z` for ML-KEM.KeyGen
-  * `m` for ML-KEM.Encaps
-  * `ct` as an invalid ciphertext input to ML-KEM.Decaps
+* `d` for K-PKE.KeyGen (don't forget to append `k` as the 33rd byte)
+* `z` for ML-KEM.KeyGen
+* `m` for ML-KEM.Encaps
+* `ct` as an invalid ciphertext input to ML-KEM.Decaps
 
 Then, the following values are written to a running SHAKE-128 instance in order:
 
-  * `ek` from ML-KEM.KeyGen
-  * `dk` from ML-KEM.KeyGen
-  * `ct` from ML-KEM.Encaps
-  * `k` from ML-KEM.Encaps (which should be checked to match the output of
-    ML-KEM.Decaps when provided with the correct `ct`)
-  * `k` from ML-KEM.Decaps when provided with the random `ct`
+* `ek` from ML-KEM.KeyGen
+* `dk` from ML-KEM.KeyGen
+* `ct` from ML-KEM.Encaps
+* `k` from ML-KEM.Encaps (which should be checked to match the output of ML-KEM.Decaps when provided with the correct `ct`)
+* `k` from ML-KEM.Decaps when provided with the random `ct`
 
 The resulting hashes for 10 000 consecutive tests are:
 
-  * ML-KEM-512: `845913ea5a308b803c764a9ed8e9d814ca1fd9c82ba43c7b1e64b79c7a6ec8e4`
-  * ML-KEM-768: `f7db260e1137a742e05fe0db9525012812b004d29040a5b606aad3d134b548d3`
-  * ML-KEM-1024: `47ac888fe61544efc0518f46094b4f8a600965fc89822acb06dc7169d24f3543`
+* ML-KEM-512: `705dcffc87f4e67e35a09dcaa31772e86f3341bd3ccf1e78a5fef99ae6a35a13`
+* ML-KEM-768: `f959d18d3d1180121433bf0e05f11e7908cf9d03edc150b2b07cb90bef5bc1c1`
+* ML-KEM-1024: `e3bf82b013307b2e9d47dde791ff6dfc82e694e6382404abdb948b908b75bad5`
 
 The resulting hashes for 1 000 000 consecutive tests are:
 
-  * ML-KEM-512: `578eeaa1156848cbf7a15bafef963b4ccabe3308ddfb7dbdd20ad965f634e81d`
-  * ML-KEM-768: `70090cc5842aad0ec43d5042c783fae9bc320c047b5dafcb6e134821db02384d`
-  * ML-KEM-1024: `7ccc6d803739d3db3c5ce39c7130f459db32a199c6605e3be210e5a89d4c4b95`
+* ML-KEM-512: `21dd330d4355f2ae2876b9fa2b9de62ecaf76aca1d598de8db2b467d36e36a6a`
+* ML-KEM-768: `3b108396a277f2952ff3243a985c9709bcb95788c39b7b36a2c4e19d1a41e51e`
+* ML-KEM-1024: `6377c4f0ecfdb32e63f7b58227960828784fe0b3e0e5e5e9f77be300f003512a`
 
 ## Other Known Answer Tests
 
