@@ -7,7 +7,8 @@ the primes are coprime with 65537.
 
 The number of composites, the distribution of their small divisors, and the
 number of trailing zeros are all chosen to be representative of the expected
-average.
+average. See [this article](https://words.filippo.io/rsa-keygen-bench/)
+for more details.
 
 This file can be used to reproducibly benchmark the average case of RSA key
 generation, which is otherwise drastically variable.
