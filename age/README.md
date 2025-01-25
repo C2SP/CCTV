@@ -51,8 +51,8 @@ processed independently. Each vector is meant to test only one failure (or
 success) scenario.
 
 The file is in two parts: first a textual header, then an empty line, and then
-an age encrypted file. The textual header is a series of key-value pairs,
-separated by a colon and a space, each on their own line.
+an age encrypted file, possibly compressed. The textual header is a series of
+key-value pairs, separated by a colon and a space, each on their own line.
 
 The following header keys are defined. Files with unknown keys should be
 ignored.
@@ -96,6 +96,13 @@ ignored.
   * `armor failure`
 
     The ASCII armor should fail to parse successfully.
+
+- `compressed`
+
+  This key will be `gzip` if the age encrypted file is compressed with gzip.
+  Note that encrypted files usually don't compress well, but large test files in
+  this collection are generated from plaintexts selected to make the ciphertext
+  compressible. **Some of these files can be several megabytes once decompressed.**
 
 - `payload`
 

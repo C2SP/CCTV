@@ -11,11 +11,10 @@ import "c2sp.org/CCTV/age/internal/testkit"
 
 func main() {
 	f := testkit.NewTestFile()
-	f.FileKey(testkit.LargeTestFileKey)
 	f.VersionLine("v1")
 	f.X25519(testkit.TestX25519Identity)
 	f.HMAC()
-	f.Nonce(testkit.LargeTestNonce)
-	f.PayloadChunkFinal(testkit.LargeTestFirstChunk)
+	f.Nonce()
+	f.PayloadChunkFinal(testkit.ChunkSize)
 	f.Generate()
 }

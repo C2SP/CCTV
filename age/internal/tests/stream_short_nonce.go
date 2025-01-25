@@ -14,7 +14,7 @@ func main() {
 	f.VersionLine("v1")
 	f.X25519(testkit.TestX25519Recipient)
 	f.HMAC()
-	f.Nonce(f.Rand(12))
+	f.Buf.Write(f.Rand(12))
 	// Marked as header failure because we read the nonce while reading the
 	// header, before handing off to the STREAM implementation.
 	f.ExpectHeaderFailure()

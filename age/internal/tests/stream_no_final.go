@@ -14,8 +14,8 @@ func main() {
 	f.VersionLine("v1")
 	f.X25519(testkit.TestX25519Recipient)
 	f.HMAC()
-	f.Nonce(f.Rand(16))
-	f.PayloadChunk([]byte("age"))
+	f.Nonce()
+	f.PayloadChunk(1)
 	f.ExpectPayloadFailure()
 	f.Generate()
 }

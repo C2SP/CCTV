@@ -11,14 +11,13 @@ import "c2sp.org/CCTV/age/internal/testkit"
 
 func main() {
 	f := testkit.NewTestFile()
-	f.FileKey(testkit.LargeTestFileKey)
 	f.VersionLine("v1")
 	f.X25519(testkit.TestX25519Identity)
 	f.HMAC()
-	f.Nonce(testkit.LargeTestNonce)
-	f.PayloadChunkFinal(testkit.LargeTestFirstChunk)
+	f.Nonce()
+	f.PayloadChunkFinal(testkit.ChunkSize)
 	f.Buf.Write(f.Rand(20))
-	f.ExpectPartialPayload(64 * 1024)
+	f.ExpectPartialPayload(testkit.ChunkSize)
 	file := f.Bytes()
 	f.Buf.Reset()
 	f.BeginArmor("AGE ENCRYPTED FILE")

@@ -11,17 +11,16 @@ import "c2sp.org/CCTV/age/internal/testkit"
 
 func main() {
 	f := testkit.NewTestFile()
-	f.FileKey(testkit.LargeTestFileKey)
 	f.VersionLine("v1")
 	f.X25519(testkit.TestX25519Identity)
 	f.HMAC()
-	f.Nonce(testkit.LargeTestNonce)
-	f.PayloadChunk(testkit.LargeTestFirstChunk)
-	f.PayloadChunkFinal(testkit.LargeTestSecondChunk)
+	f.Nonce()
+	f.PayloadChunk(testkit.ChunkSize)
+	f.PayloadChunkFinal(testkit.ChunkSize)
 	file := f.Buf.Bytes()
 	f.Buf.Reset()
 	file[len(file)-1] ^= 0b0010_0000
 	f.Buf.Write(file)
-	f.ExpectPartialPayload(64 * 1024)
+	f.ExpectPartialPayload(testkit.ChunkSize)
 	f.Generate()
 }

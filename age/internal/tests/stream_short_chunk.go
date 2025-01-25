@@ -14,8 +14,8 @@ func main() {
 	f.VersionLine("v1")
 	f.X25519(testkit.TestX25519Recipient)
 	f.HMAC()
-	f.Nonce(f.Rand(16))
-	f.Nonce(f.Rand(12)) // less than the length of a Poly1305 tag
+	f.Nonce()
+	f.Buf.Write(f.Rand(12)) // less than the length of a Poly1305 tag
 	f.ExpectPayloadFailure()
 	f.Generate()
 }
