@@ -1,0 +1,23 @@
+{
+    "name": "cctv-age",
+    "version": "0.1.1",
+    "files": [
+        "index.js",
+        "index.d.ts"
+    ],
+    "type": "module",
+    "exports": {
+        ".": "./index.js"
+    },
+    "types": "./index.d.ts",
+    "keywords": [
+        "age",
+        "test vectors"
+    ],
+    "scripts": {
+        "build": "cd internal && go generate",
+        "prepublishOnly": "npm run build"
+    },
+    "author": "Filippo Valsorda <npm@filippo.io> (https://filippo.io)",
+    "license": "(0BSD OR CC0-1.0 OR Unlicense)"
+}

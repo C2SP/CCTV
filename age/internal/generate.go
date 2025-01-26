@@ -5,11 +5,14 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/evanw/esbuild/pkg/api"
 )
 
 //go:generate go run generate.go
@@ -27,6 +30,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	js := &strings.Builder{}
 	for _, generator := range generators {
 		vector := strings.TrimSuffix(generator, ".go")
 		vector = "../testdata/" + strings.TrimPrefix(vector, "tests/")
@@ -39,5 +43,22 @@ func main() {
 			log.Fatal(err)
 		}
 		os.WriteFile(vector, out, 0664)
+		fmt.Fprintf(js, "export { default as %s } from %q;\n", filepath.Base(vector), vector)
 	}
+	result := api.Build(api.BuildOptions{
+		Stdin: &api.StdinOptions{
+			Contents:   js.String(),
+			ResolveDir: ".",
+		},
+		Loader: map[string]api.Loader{
+			"": api.LoaderBinary,
+		},
+		Bundle:   true,
+		Platform: api.PlatformNeutral,
+		Target:   api.ES2022,
+	})
+	if len(result.Errors) != 0 {
+		log.Fatal(result.Errors)
+	}
+	os.WriteFile("../index.js", result.OutputFiles[0].Contents, 0664)
 }

@@ -133,7 +133,7 @@ func (f *TestFile) AEADBody(key, body []byte) {
 func x25519(scalar, point []byte) []byte {
 	secret, err := curve25519.X25519(scalar, point)
 	if err != nil {
-		if err.Error() == "bad input point: low order point" {
+		if strings.Contains(err.Error(), "low order point") {
 			return make([]byte, 32)
 		}
 		panic(err)

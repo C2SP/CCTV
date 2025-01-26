@@ -29,6 +29,8 @@ implementation](https://github.com/FiloSottile/age/blob/980763a/testkit_test.go)
 If testing a Go program, you can import the `c2sp.org/CCTV/age` module and use
 the embedded filesystem.
 
+If using npm, you can install the `cctv-age` package and use the module exports.
+
 Otherwise, you can use `git-subtree` to include a copy of the vectors in your
 project. The license allows this without attribution.
 
