@@ -1,14 +1,13 @@
 {
     "name": "cctv-age",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "files": [
         "index.js",
         "index.d.ts"
     ],
     "type": "module",
-    "exports": {
-        ".": "./index.js"
-    },
+    "main": "./index.js",
+    "exports": "./index.js",
     "types": "./index.d.ts",
     "keywords": [
         "age",
