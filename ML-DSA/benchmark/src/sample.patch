@@ -1,0 +1,62 @@
+diff --git a/src/crypto/internal/fips140/mldsa/mldsa.go b/src/crypto/internal/fips140/mldsa/mldsa.go
+index 5013512df7..bd16b5437d 100644
+--- a/src/crypto/internal/fips140/mldsa/mldsa.go
++++ b/src/crypto/internal/fips140/mldsa/mldsa.go
+@@ -503,6 +503,15 @@
+ 			// Reject if ||z||∞ ≥ γ1 − β
+ 			if coefficientsExceedBound(z[i], γ1β) {
+ 				if testingOnlyRejectionReason != nil {
++					for i := range w {
++						r0 := polySub(w[i], cs2[i])
++
++						// Reject if ||LowBits(r0)||∞ ≥ γ2 − β
++						if lowBitsExceedBound(r0, γ2β, p) {
++							testingOnlyRejectionReason("z/r0")
++							continue sign
++						}
++					}
+ 					testingOnlyRejectionReason("z")
+ 				}
+ 				continue sign
+diff --git a/src/crypto/internal/fips140/mldsa/stat_test.go b/src/crypto/internal/fips140/mldsa/stat_test.go
+new file mode 100644
+index 0000000000..85b595f751
+--- /dev/null
++++ b/src/crypto/internal/fips140/mldsa/stat_test.go
+@@ -0,0 +1,36 @@
++package mldsa
++
++import (
++	"crypto/rand"
++	"fmt"
++	"testing"
++)
++
++func TestSample(t *testing.T) {
++	t.Run("ML-DSA-44", func(t *testing.T) {
++		testSample(t, NewPrivateKey44)
++	})
++	t.Run("ML-DSA-65", func(t *testing.T) {
++		testSample(t, NewPrivateKey65)
++	})
++	t.Run("ML-DSA-87", func(t *testing.T) {
++		testSample(t, NewPrivateKey87)
++	})
++}
++
++func testSample(t *testing.T, keyGen func([]byte) (*PrivateKey, error)) {
++	testingOnlyRejectionReason = func(reason string) {
++		fmt.Printf("rejection: %s\n", reason)
++	}
++	t.Cleanup(func() {
++		testingOnlyRejectionReason = nil
++	})
++	seed := make([]byte, 32)
++	priv, err := keyGen(seed)
++	if err != nil {
++		t.Fatalf("keyGen: %v", err)
++	}
++	message := rand.Text()
++	fmt.Printf("seed: %s\n", message)
++	SignDeterministic(priv, []byte(message), "")
++}
