@@ -12,13 +12,9 @@ import "c2sp.org/CCTV/age/internal/testkit"
 func main() {
 	f := testkit.NewTestFile()
 	f.VersionLine("v1")
-	f.X25519(testkit.TestX25519Identity)
-	body, args := f.UnreadLine(), f.UnreadLine()
-	f.TextLine(args + " 1234")
-	f.TextLine(body)
+	f.HybridNoRecordIdentity(f.Rand(32))
+	f.Hybrid(testkit.TestHybridIdentity)
 	f.HMAC()
 	f.Payload("age")
-	f.ExpectHeaderFailure()
-	f.Comment("the X25519 stanza has an unexpected extra argument")
 	f.Generate()
 }

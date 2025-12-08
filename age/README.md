@@ -114,7 +114,7 @@ ignored.
 
 - `identity`
 
-  This is a Bech32 encoded X25519 identity that should be used to unwrap
+  This is a Bech32 encoded X25519 or hybrid identity that should be used to unwrap
   recipient stanzas. This key can appear multiple times.
 
 - `passphrase`

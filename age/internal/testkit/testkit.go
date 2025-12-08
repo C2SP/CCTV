@@ -8,8 +8,11 @@ import (
 	"bytes"
 	"compress/zlib"
 	"crypto/hmac"
+	"crypto/mlkem"
 	"crypto/sha256"
+	"crypto/sha3"
 	"encoding/base64"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"os"
@@ -17,6 +20,7 @@ import (
 	"strings"
 
 	"c2sp.org/CCTV/age/internal/bech32"
+	"c2sp.org/CCTV/age/internal/mlkemtest"
 	"golang.org/x/crypto/chacha20"
 	"golang.org/x/crypto/chacha20poly1305"
 	"golang.org/x/crypto/curve25519"
@@ -30,6 +34,14 @@ var _, TestX25519Identity, _ = bech32.Decode(
 	"AGE-SECRET-KEY-1EGTZVFFV20835NWYV6270LXYVK2VKNX2MMDKWYKLMGR48UAWX40Q2P2LM0")
 
 var TestX25519Recipient, _ = curve25519.X25519(TestX25519Identity, curve25519.Basepoint)
+
+var _, TestHybridIdentity, _ = bech32.Decode(
+	"AGE-SECRET-KEY-PQ-1HZLGZUPT4ETPKDEV8HSGFDCYZ4E522W0A7PU2LHT8EH9W6YLNC3SW78XKG")
+
+var TestHybridRecipient = func() []byte {
+	dkPQ, dkT := hybridKeysFromSeed(TestHybridIdentity)
+	return append(dkPQ.EncapsulationKey().Bytes(), x25519(dkT, curve25519.Basepoint)...)
+}()
 
 const ChunkSize = 64 * 1024
 
@@ -166,6 +178,99 @@ func (f *TestFile) X25519Stanza(share, identity []byte) {
 	hkdf.New(sha256.New, secret, append(share, recipient...),
 		[]byte("age-encryption.org/v1/X25519")).Read(key)
 	f.AEADBody(key, f.fileKey)
+}
+
+func (f *TestFile) Hybrid(identity []byte) {
+	f.HybridRecordIdentity(identity)
+	f.HybridNoRecordIdentity(identity)
+}
+
+func (f *TestFile) HybridRecordIdentity(identity []byte) {
+	id, _ := bech32.Encode("AGE-SECRET-KEY-PQ-", identity)
+	f.identities = append(f.identities, id)
+}
+
+func (f *TestFile) HybridNoRecordIdentity(identity []byte) {
+	share := x25519(f.Rand(32), curve25519.Basepoint)
+	f.HybridStanza(share, f.Rand(32), identity)
+}
+
+func (f *TestFile) HybridStanza(ctT, pqRandom, identity []byte) {
+	dkPQ, dkT := hybridKeysFromSeed(identity)
+
+	// Calculate shared secret as [dkT]ctT instead of [ephemeral]ekT
+	ssT := x25519(dkT, ctT)
+
+	// ML-KEM-768 deterministic encapsulation
+	ssPQ, ctPQ, _ := mlkemtest.Encapsulate768(dkPQ.EncapsulationKey(), pqRandom)
+
+	// Combined shared secret (X-Wing style)
+	h := sha3.New256()
+	h.Write(ssPQ)
+	h.Write(ssT)
+	h.Write(ctT)
+	h.Write(x25519(dkT, curve25519.Basepoint))
+	h.Write([]byte(`\./` + `/^\`))
+	sharedSecret := h.Sum(nil)
+
+	// HPKE key schedule with HKDF-SHA256
+	// suiteID = "HPKE" || kemID || kdfID || aeadID
+	//         = "HPKE" || 0x647a || 0x0001 || 0x0003
+	suiteID := []byte("HPKE\x64\x7a\x00\x01\x00\x03")
+	info := []byte("age-encryption.org/mlkem768x25519")
+
+	pskIDHash := hpkeLabeledExtract(suiteID, nil, "psk_id_hash", nil)
+	infoHash := hpkeLabeledExtract(suiteID, nil, "info_hash", info)
+	ksContext := append([]byte{0}, pskIDHash...) // mode = 0
+	ksContext = append(ksContext, infoHash...)
+
+	secret := hpkeLabeledExtract(suiteID, sharedSecret, "secret", nil)
+	key := hpkeLabeledExpand(suiteID, secret, "key", ksContext, 32)
+	baseNonce := hpkeLabeledExpand(suiteID, secret, "base_nonce", ksContext, 12)
+
+	// Seal with ChaCha20-Poly1305 (seqNum=0, so nonce = baseNonce)
+	aead, _ := chacha20poly1305.New(key)
+	ciphertext := aead.Seal(nil, baseNonce, f.fileKey, nil)
+
+	// enc = ctPQ || ctT
+	enc := append(ctPQ, ctT...)
+	f.ArgsLine("mlkem768x25519", b64(enc))
+	f.Body(ciphertext)
+}
+
+func hybridKeysFromSeed(seed []byte) (dkPQ *mlkem.DecapsulationKey768, dkT []byte) {
+	s := sha3.NewSHAKE256()
+	s.Write(seed)
+
+	seedPQ := make([]byte, mlkem.SeedSize)
+	s.Read(seedPQ)
+	dkPQ, _ = mlkem.NewDecapsulationKey768(seedPQ)
+
+	dkT = make([]byte, 32)
+	s.Read(dkT)
+
+	return dkPQ, dkT
+}
+
+func hpkeLabeledExtract(suiteID, salt []byte, label string, ikm []byte) []byte {
+	labeledIKM := make([]byte, 0, 7+len(suiteID)+len(label)+len(ikm))
+	labeledIKM = append(labeledIKM, []byte("HPKE-v1")...)
+	labeledIKM = append(labeledIKM, suiteID...)
+	labeledIKM = append(labeledIKM, label...)
+	labeledIKM = append(labeledIKM, ikm...)
+	return hkdf.Extract(sha256.New, labeledIKM, salt)
+}
+
+func hpkeLabeledExpand(suiteID, prk []byte, label string, info []byte, length int) []byte {
+	labeledInfo := make([]byte, 0, 2+7+len(suiteID)+len(label)+len(info))
+	labeledInfo = binary.BigEndian.AppendUint16(labeledInfo, uint16(length))
+	labeledInfo = append(labeledInfo, []byte("HPKE-v1")...)
+	labeledInfo = append(labeledInfo, suiteID...)
+	labeledInfo = append(labeledInfo, label...)
+	labeledInfo = append(labeledInfo, info...)
+	out := make([]byte, length)
+	hkdf.Expand(sha256.New, prk, labeledInfo).Read(out)
+	return out
 }
 
 func (f *TestFile) Scrypt(passphrase string, workFactor int) {
@@ -312,7 +417,7 @@ func (f *TestFile) Generate() {
 		fmt.Printf("comment: %s\n", f.comment)
 	}
 	out := io.Writer(os.Stdout)
-	if f.Buf.Len() > 1024 {
+	if f.Buf.Len() > 2048 {
 		fmt.Printf("compressed: zlib\n")
 		out, _ = zlib.NewWriterLevel(os.Stdout, zlib.BestCompression)
 		defer out.(*zlib.Writer).Close()

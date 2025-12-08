@@ -12,13 +12,12 @@ import "c2sp.org/CCTV/age/internal/testkit"
 func main() {
 	f := testkit.NewTestFile()
 	f.VersionLine("v1")
-	f.X25519(testkit.TestX25519Identity)
-	body, args := f.UnreadLine(), f.UnreadLine()
-	f.TextLine(args + " 1234")
-	f.TextLine(body)
+	f.Hybrid(testkit.TestHybridIdentity)
+	body := f.UnreadLine()
+	f.TextLine(testkit.NotCanonicalBase64(body))
 	f.HMAC()
 	f.Payload("age")
 	f.ExpectHeaderFailure()
-	f.Comment("the X25519 stanza has an unexpected extra argument")
+	f.Comment("the base64 encoding of the share is not canonical")
 	f.Generate()
 }

@@ -12,13 +12,13 @@ import "c2sp.org/CCTV/age/internal/testkit"
 func main() {
 	f := testkit.NewTestFile()
 	f.VersionLine("v1")
-	f.X25519(testkit.TestX25519Identity)
-	body, args := f.UnreadLine(), f.UnreadLine()
-	f.TextLine(args + " 1234")
+	f.Hybrid(testkit.TestHybridIdentity)
+	body, args := f.UnreadLine(), f.UnreadArgsLine()
+	f.ArgsLine("MLKEM768X25519", args[1])
 	f.TextLine(body)
 	f.HMAC()
 	f.Payload("age")
-	f.ExpectHeaderFailure()
-	f.Comment("the X25519 stanza has an unexpected extra argument")
+	f.ExpectNoMatch()
+	f.Comment("the first argument in the mlkem768x25519 stanza is uppercase")
 	f.Generate()
 }
