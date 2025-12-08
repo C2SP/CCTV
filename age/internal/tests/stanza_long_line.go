@@ -16,7 +16,7 @@ import (
 func main() {
 	f := testkit.NewTestFile()
 	f.VersionLine("v1")
-	f.X25519(testkit.TestX25519Recipient)
+	f.X25519(testkit.TestX25519Identity)
 	f.ArgsLine("stanza")
 	f.TextLine(strings.Repeat("A", 68))
 	f.TextLine("")

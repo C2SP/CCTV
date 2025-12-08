@@ -12,7 +12,7 @@ import "c2sp.org/CCTV/age/internal/testkit"
 func main() {
 	f := testkit.NewTestFile()
 	f.VersionLine("v1")
-	f.X25519(testkit.TestX25519Recipient)
+	f.X25519(testkit.TestX25519Identity)
 	body, args := f.UnreadLine(), f.UnreadArgsLine()
 	f.ArgsLine("x25519", args[1])
 	f.TextLine(body)

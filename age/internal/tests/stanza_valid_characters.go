@@ -16,7 +16,7 @@ func main() {
 	f.Body([]byte(""))
 	f.ArgsLine("PQRSTUVW", "XYZ[\\]^_", "`abcdefg", "hijklmno", "pqrstuvw", "xyz{|}~")
 	f.Body([]byte(""))
-	f.X25519(testkit.TestX25519Recipient)
+	f.X25519(testkit.TestX25519Identity)
 	f.HMAC()
 	f.Payload("age")
 	f.Generate()

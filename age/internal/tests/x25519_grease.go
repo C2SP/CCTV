@@ -14,7 +14,7 @@ func main() {
 	f.VersionLine("v1")
 	f.ArgsLine("grease")
 	f.Body(nil)
-	f.X25519(testkit.TestX25519Recipient)
+	f.X25519(testkit.TestX25519Identity)
 	f.ArgsLine("grease")
 	f.Body(nil)
 	f.HMAC()

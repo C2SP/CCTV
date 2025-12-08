@@ -16,7 +16,7 @@ import (
 func main() {
 	f := testkit.NewTestFile()
 	f.VersionLine("v1")
-	f.X25519(testkit.TestX25519Recipient)
+	f.X25519(testkit.TestX25519Identity)
 	body, _ := base64.RawStdEncoding.DecodeString(f.UnreadLine())
 	body[len(body)-1] ^= 0xff
 	f.TextLine(base64.RawStdEncoding.EncodeToString(body))

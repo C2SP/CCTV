@@ -12,7 +12,7 @@ import "c2sp.org/CCTV/age/internal/testkit"
 func main() {
 	f := testkit.NewTestFile()
 	f.VersionLine("v1")
-	f.X25519(testkit.TestX25519Recipient)
+	f.X25519(testkit.TestX25519Identity)
 	f.HMAC()
 	f.Buf.Write(f.Rand(12))
 	// Marked as header failure because we read the nonce while reading the
