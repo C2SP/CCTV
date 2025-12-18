@@ -1,0 +1,110 @@
+{
+  "ciphersuite": "COCKTAIL(Ed25519, SHA-512)",
+  "seed": "b171b6992cc6db1f40b18dd8b1361d642f013e4b1208a735259a516af60dcb68",
+  "derivation": {
+    "method": "H(seed || ciphersuite_id || label) where H is the ciphersuite hash (COCKTAIL(Ed25519, SHA-512))",
+    "labels": {
+      "static_secret_key": "static_secret_key_{{i}}",
+      "ephemeral_secret_key": "round1_participant_{{i}} (RNG stream)",
+      "polynomial_coefficient": "round1_participant_{{i}} (RNG stream)"
+    }
+  },
+  "vectors": [
+    {
+      "n": 3,
+      "t": 2,
+      "context": "434f434b5441494c2d444b472d544553542d564543544f522d322d4f462d33",
+      "config": {
+        "static_secret_keys": [
+          "cb7d66d274b9f7c68799bd014e94bffc4ab2370cc37324e6caeea236eb10f608",
+          "1893c61c506918c7197475a60d17b6e10479c9cbf6976085d06bc8bb7f648d02",
+          "3a51c9a4eb2a7a487647d8ec6a2763f415cda6a4d38996a1079819c7c845b300"
+        ],
+        "static_public_keys": [
+          "305b7e49602cf880239f73889aca2f02949de5caab7887cf4be7333824dbf4a2",
+          "8a5cce577f2ea7d1a5c3cd177658943dc6f262df0ced60724308aa79045b0a12",
+          "ce7677bcef4ae6b3e0a46db45bdb13997d900b64fb9172781e8935eaa7f0f899"
+        ]
+      },
+      "round1": [
+        {
+          "participant_id": 1,
+          "ephemeral_public_key": "c67e06c1aee56cb57be01590258af7d347fc1cf845b48a3c51e3952d745d4b31",
+          "vss_commitment": [
+            "cf8c29860ed3a97adaee9ef70a36c37833da2b16b32b54c0251d3dd7dcd9ea49",
+            "7c8e135747f411e44005857bbd08f39aad17f3da51b585e8920c6ceff7c53285"
+          ],
+          "pop": "8756a8287fa4f0c3c86d8e4cab21c6d427c084e31269e37e451383cebed5c708b1c65208d9af7f74de2a6a3c01cf15be6259cdade07264a45bc90d54aab97906",
+          "encrypted_shares": [
+            "46edec1a435322d1a7cbbd43961b85289d658fb81cd3937a39cbb047f80df328e3c326d26aa5b698df1278f63c0e5ef1",
+            "b076969b28db00f81ccdb98e2ecb34d28a0b2de7b931a6641d7467e7ca7096ce7b3d36eaac93d6e2d9384b00d3dc0d2a",
+            "10c50f89f8511f1ae1b4d610fc56c5ee0107c9138bb7bbb2edeca3822d91bd48a390de93fe28490b55eef0e4edf15eb7"
+          ]
+        },
+        {
+          "participant_id": 2,
+          "ephemeral_public_key": "cd8e398fcf5884aa07428fd461d080a68e710c6aa0e62444f9a08ad03097a65c",
+          "vss_commitment": [
+            "8407489e322858a4a67e1adf5173478d109ad3aaa1d4cdd5ccb72a8a7ecda184",
+            "29397e8ec7897d722dcf8d34fa78d5bfcd54ccfd8e04d6b161539e96aa6cc68d"
+          ],
+          "pop": "ad606cc8d57167d9665e549fae51763254d599b9a2d43f73f3ab372eb2ab504f2c13b8c8828a98cd2caf230d06dac46d1d9ad89c8acf461c69675b494f7eb004",
+          "encrypted_shares": [
+            "e716c446af36ce5aff0f82c4c362c51c5857fe16bab6a6031ee3902ad97a3cc38d52a8a1e5ad9be86a2fc5fd9f9fdd95",
+            "7ec60c2ef03e93ef47f5aff7ca1696ebd2fa718ffbc987174b2fb9b0b64b33184ec278d215884a0ba979f3e638ce23f0",
+            "bcaade0efbb20915f069dc82fc9a63a209b3c7497ccc691be7bdba6e617634b68e4929dc05986ee5a8f5f35bedbd4b65"
+          ]
+        },
+        {
+          "participant_id": 3,
+          "ephemeral_public_key": "1427463bdcfa7c422603737ea2b16dcc49e23162f81a41edfe9fb7b074bc9685",
+          "vss_commitment": [
+            "1bfada628278896d9ff6ebfe42ca7ab8b53e917d94c1576eb7dbcd8aeedf1826",
+            "50063a88dea36a9bb5b6f4356749d3649ec4739b09151de381a2ba254d8c3fe9"
+          ],
+          "pop": "d3fab49b2a4da40141bd90ea26cbb3020b6d79fc0a4b8871366ddccb389f34c8d5c7e4e99dff96f93241b0364543a891b4f3a0351eff8b1d60395548c057ff01",
+          "encrypted_shares": [
+            "623fec90ce6060ab570a51666a5c492ecebab286940b36a19bb8bc7728dc7fdda36f1713008e0617f53956866be5e365",
+            "b07ca153be4cab7cb019e4c7332f20eeb2dce9aa6d6675b495074cb0dd4df86c9d6a5d78dbeac1c59e2f7ebdc98f5ba8",
+            "5f0e99dcd2380d5f7d7ca1356294226204f2cdbfb6d6d06512131abd40aee4cc20a2defbf0c37a7292ae1aeba75e2b68"
+          ]
+        }
+      ],
+      "round2": [
+        {
+          "participant_id": 1,
+          "secret_share": "0f6ac06d86c23448dd09c6c52d3a4ba59970c92e020db4e84d5af6604874eb01",
+          "verification_share": "ec3252ae4048d562194fad35f732e40e309b02d3f8e75c7a34f87240f2691792"
+        },
+        {
+          "participant_id": 2,
+          "secret_share": "0b1bf10a6f30b320d9479c219f59de30f5066346512369387134c1d626c11904",
+          "verification_share": "b5897d6024513ef34b2f139e3cab0e601eedd0a1bc50d5314946e8e4ce5d45ba"
+        },
+        {
+          "participant_id": 3,
+          "secret_share": "07cc21a8579e31f9d485727d107971bc509dfc5da0391e88940e8c4c050e4806",
+          "verification_share": "bb7a42d7a9be00e293acfbf6e84345b1bea1e3fd0e0a35c1f02c82dda28b64a2"
+        }
+      ],
+      "round3": {
+        "transcript_hash": "e90521cc6e735e921665b6f8aa68e082d49e20432e291867377d8755835c56f7d105fa3f1b10db6a3ff257982afd661ed23595d9bbcd37c72ed87ef272a82196",
+        "signatures": [
+          {
+            "signer_id": 1,
+            "signature": "47ebfe6739a15f3e3c1c12f580c294083c8ea9f5b9461eb61dd6dd98682384858c683023233aab21c4e1470d7e0777b5e9d9ed9b0e07f7700f9f7f920dcfa003"
+          },
+          {
+            "signer_id": 2,
+            "signature": "c0169a378cc565adee853258c1066fc851f03cc4c65e22117481a92af29a7e0a75842752e4d42f94f5986b75631fdbaa69eae44f7c5c918bd3772ca9ea87ce0e"
+          },
+          {
+            "signer_id": 3,
+            "signature": "1cbbc29acd09748dafd283966a3c0653782267c83270c3bfe496c0712d60326ca8f2c795c6a878cc5df4c21096cfc6263a8a66d259c184515935dc21bc861701"
+          }
+        ]
+      },
+      "group_public_key": "962e7ef6e114c47d3e83914d492f561de12901bd60543066ca0aaf913b4b9866"
+    }
+  ]
+}
