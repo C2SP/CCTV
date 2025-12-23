@@ -104,7 +104,17 @@
           }
         ]
       },
-      "group_public_key": "02a8b67f71bffd8c6c2e529027aad586c1f544ad42f7ea7048b0eaebf233c4352a"
+      "group_public_key": "02a8b67f71bffd8c6c2e529027aad586c1f544ad42f7ea7048b0eaebf233c4352a",
+      "recovery": {
+        "participant_id": 1,
+        "ciphertexts": [
+          "7e8cb8ef817b78873a7eeb00fba8bbced71124951500ccdb2a287ac8c27e9619cb3e3e5957811dda27dcd6d463d5b54b",
+          "5d7d7fa5304ca522ce93970dcedb630a9034afc1b06ac864dee3f0ab0661d824b13fe694cc8a6e462bb8472a2236f833",
+          "0793cbe598727514b55731e9410bde1a302cdcf675b69bf44e720b9cef8e2be5274cdd7ce33d227f1752d9a1c8a00809"
+        ],
+        "recovered_secret_share": "112ffc75c88657968c290f46bea1573996cd4825c79d1422b2a430dcde0863af",
+        "recovered_verification_share": "0314bd10010bd552adee76a83db3042a17021244f0871cb2abdd1648686f55f662"
+      }
     },
     {
       "n": 5,
@@ -265,7 +275,19 @@
           }
         ]
       },
-      "group_public_key": "0323686a5185b926ffcdb4e90f51687749950aa6f8af76af4141a7a479e0ae9aa7"
+      "group_public_key": "0323686a5185b926ffcdb4e90f51687749950aa6f8af76af4141a7a479e0ae9aa7",
+      "recovery": {
+        "participant_id": 1,
+        "ciphertexts": [
+          "05f90d198733e63b42afff31eeefbf3d58f1f7e1333dd024adb4d860d7815c2e2c92d0ed328cd6f23a2402afafc4f013",
+          "cd7f6ac1eaf19ccc62dfcaab15e8de73f265a76b144b9107f9b9d606c498e57b0ba093c1181f454aba31ed8a8d6f406c",
+          "8a8d014d7e897a6dd47687e8adbcc294d9ddc90175ecef7a978dbbe77823c0faf2b9398d8838df475edd8ba9edc8f256",
+          "2bc6a87063848da50c1e4e41df99b4f684687770f34322e6bea1e06b193326220e7cd371e321275821d8180b434ff893",
+          "1043252ce5761c07aa0361b8224a708ed40c8845a926faaa63db928c7cfca45c07ffebb2a2ef23538e692fd5cf0ed11c"
+        ],
+        "recovered_secret_share": "4c6edebc35fd4aa03539772a17da1ad68f5d06b8bbba01f83e07b64c9c95e459",
+        "recovered_verification_share": "02406a1e0295b29540fdf7b396644cbcc8a7657d71bc4d7f3be5f397c932f250fd"
+      }
     },
     {
       "n": 14,
@@ -860,7 +882,28 @@
           }
         ]
       },
-      "group_public_key": "030354ea2ae5e1eda262283b474f553683dba47f9060275452cd137d2a2c2d4992"
+      "group_public_key": "030354ea2ae5e1eda262283b474f553683dba47f9060275452cd137d2a2c2d4992",
+      "recovery": {
+        "participant_id": 1,
+        "ciphertexts": [
+          "05fbe15833e6639d8f6eb25b336af8d1fe0cab753a4040a829b7f957dddd1b73a4db1cf08f846d81da0990d4054ff984",
+          "6beff6e079a4964ecec533c73eabecd7dff63f0cfe50788133f01465296b6ed497c1aba5197b9c76564894f0044f9ad6",
+          "615a1e6814ade0b4cebf128a118bafeabbe4b5bd52069570caa1dd76c8d15c1ce729cfb24cfeb77c07345179ea530421",
+          "2f286aa0dbb2e269b64c683465bc2466e8a30ed2c186673cec10591b067d1a40ca4d752daed8dad2dc284f5a195ddea5",
+          "b18f055de6c275487ddbb2303b3b78c6f41d8591dded5078a72f7cbda4599323c735859ed03681e8d31d3a2a15062c64",
+          "ef7947943862b711fef9731ac45cdaf859b44f713a6bd98e4788553fc4aaf582a6cacb6e2c9d3cdea36892c6836ec255",
+          "32f63d26e49d5b308782c44f6908e26bfc9902c1b0032194c1984b4cef32967a9b1fed2f0e69cdb015d0db405e3bb9ef",
+          "630ec98b2333cab7668cda6835f137fcc6c04b896f490761316e6716c12ae45e9efec81ba59c0ff2cccd28b7233bac52",
+          "923a590d95f2411d48b09562bba5d99a714d6e4a60b35db8a31bb33193ae58f5c966814a52992e0af01e3432271a7cf1",
+          "d2b88b9b4d038dd037f2c56b8f09ceb71a50d6ecc60a6b3d0cb2d09dc6013a92cce4d4a5e4f1d74990bf34265798121e",
+          "ac519bfef518eedbd188239ab9fc4809ccf52db2f57318f4dd4c9863538eb84c1fd0cf93c752b148aef6682fc05dcf50",
+          "bc79f5fcd30c8ec6961bd1c95d734a6b055c272c4d9cc03ff7ca7ab495ca9e4e07b94c9b97f76b5584ed041a57c22a3a",
+          "f2eabd1b1246ff7642564f68fd8c136ea7079786f5b8fa50ee0b2ad21ff801deb1a3dfb7bfb5d867c61152c2843f50ce",
+          "e4d24c01774cb026255b89401e4b6c1c91aa71816f24c4128cc4b76e068e3af42119d98c5eade7f189f8fdbaccacedae"
+        ],
+        "recovered_secret_share": "31c11e7b3303511ae5b70236717ee6c996a7d36e32a07e5c7adeca6fb836ed27",
+        "recovered_verification_share": "025b18b60bcb8458af427fe61b52f1dd41a6f22fb1ace7aa5a1c3e22b2a80aa81a"
+      }
     },
     {
       "n": 3,
@@ -956,7 +999,17 @@
           }
         ]
       },
-      "group_public_key": "02a8b67f71bffd8c6c2e529027aad586c1f544ad42f7ea7048b0eaebf233c4352a"
+      "group_public_key": "02a8b67f71bffd8c6c2e529027aad586c1f544ad42f7ea7048b0eaebf233c4352a",
+      "recovery": {
+        "participant_id": 1,
+        "ciphertexts": [
+          "7e8cb8ef817b78873a7eeb00fba8bbced71124951500ccdb2a287ac8c27e9619cb3e3e5957811dda27dcd6d463d5b54b",
+          "5d7d7fa5304ca522ce93970dcedb630a9034afc1b06ac864dee3f0ab0661d824b13fe694cc8a6e462bb8472a2236f833",
+          "0793cbe598727514b55731e9410bde1a302cdcf675b69bf44e720b9cef8e2be5274cdd7ce33d227f1752d9a1c8a00809"
+        ],
+        "recovered_secret_share": "112ffc75c88657968c290f46bea1573996cd4825c79d1422b2a430dcde0863af",
+        "recovered_verification_share": "0314bd10010bd552adee76a83db3042a17021244f0871cb2abdd1648686f55f662"
+      }
     }
   ]
 }
