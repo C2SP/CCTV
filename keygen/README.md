@@ -1,9 +1,10 @@
 ## RSA key generation benchmark
 
-The `rsa.bench.2048.txt` file is a sequence of prime candidates for RSA 2048 key
-generation, one per line, in big endian hex. The file contains two primes, the
+The `rsa.bench.NNNN.txt` files are a sequence of prime candidates for RSA key
+generation, one per line, in big endian hex. Each file contains two primes, the
 second of which is on the last line, and a number of composites. The totients of
-the primes are coprime with 65537.
+the primes are coprime with 65537. All candidates have the top two and the
+bottom three bits set.
 
 The number of composites, the distribution of their small divisors, and the
 number of trailing zeros are all chosen to be representative of the expected
@@ -11,7 +12,7 @@ average. See [this article](https://words.filippo.io/rsa-keygen-bench/)
 for more details.
 
 This file can be used to reproducibly benchmark the average case of RSA key
-generation, which is otherwise drastically variable.
+generation, which otherwise has a drastically variable geometric distribution.
 
 ## License
 
