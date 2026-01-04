@@ -2,20 +2,25 @@
 # requires-python = ">=3.13"
 # dependencies = [
 #     "sympy",
+#     "mpmath",
 # ]
 # ///
 
 from sympy import isprime, primerange
 from random import randrange, shuffle
+from mpmath import li
+from sys import argv
 
-PRIMES = list(primerange(3, 1000000))
+BIT_SIZE = int(argv[1]) // 2 if len(argv) > 1 else 1024
 
-# Ratio of odd integers less than 2^1024 that are prime.
-# Li(2^1024) / 2^1024 * 2
-PRIME_RATIO = 0.002821744
+PRIMES: list[int] = list(primerange(3, 1000000)) # type: ignore
+
+# Ratio of odd integers less than 2^BIT_SIZE that are prime.
+# Li(2^BIT_SIZE) / 2^BIT_SIZE * 2
+PRIME_RATIO = float(li(2**BIT_SIZE) / 2**(BIT_SIZE - 1))
 
 # Ratio of odd integers divisible by primes[:n].
-SMALLDIV_RATIOS = [0]
+SMALLDIV_RATIOS: list[float] = [0]
 
 for p in PRIMES:
     SMALLDIV_RATIOS.append(1 - (1 - SMALLDIV_RATIOS[-1]) * ((p - 1) / p))
@@ -42,8 +47,7 @@ done = lambda: all(len(bucket["have"]) >= bucket["want"] for bucket in small_div
     len(composite["have"]) >= composite["want"] and len(prime["have"]) >= prime["want"]
 
 while not done():
-    x = randrange(2**1023 + 2**1022 + 1, 2**1024, 2)
-    x = (x & ~0b10) | 0b100 # normalize a in Miller-Rabin
+    x = randrange(2**(BIT_SIZE-1) + 2**(BIT_SIZE-2) + 1, 2**BIT_SIZE, 2) | 0b111
     if isprime(x):
         prime["have"].append(x)
         continue
