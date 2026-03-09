@@ -1,0 +1,11 @@
+[package]
+name = "ml-dsa-accumulated"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libcrux-ml-dsa = "0.0.3"
+clap = { version = "4", features = ["derive"] }
+sha3 = "0.10"
+hex = "0.4"
+rayon = "1.8"
