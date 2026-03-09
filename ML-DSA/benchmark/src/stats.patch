@@ -1,0 +1,86 @@
+diff --git a/src/crypto/internal/fips140/mldsa/mldsa.go b/src/crypto/internal/fips140/mldsa/mldsa.go
+index 5013512df7..c9ee231e50 100644
+--- a/src/crypto/internal/fips140/mldsa/mldsa.go
++++ b/src/crypto/internal/fips140/mldsa/mldsa.go
+@@ -12,6 +12,7 @@
+ 	"crypto/internal/fips140/subtle"
+ 	"crypto/internal/fips140deps/byteorder"
+ 	"errors"
++	"fmt"
+ )
+ 
+ type parameters struct {
+@@ -436,8 +437,9 @@
+ 	nonce := make([]byte, 64)
+ 	H.Read(nonce)
+ 
++	var bitmaps [16]int
++
+ 	κ := 0
+-sign:
+ 	for {
+ 		// Main rejection sampling loop. Note that leaking rejected signatures
+ 		// leaks information about the private key. However, as explained in
+@@ -461,6 +463,11 @@
+ 			y[r] = bitUnpack(v, p)
+ 		}
+ 
++		if int(uint16(κ)) < κ {
++			drbg.Read(nonce)
++			κ = 0
++		}
++
+ 		// w = NTT⁻¹(Â ∘ NTT(y))
+ 		yHat := make([]nttElement, l, maxL)
+ 		for i := range y {
+@@ -496,6 +503,8 @@
+ 			cs2[i] = inverseNTT(nttMul(c, s2[i]))
+ 		}
+ 
++		var rejectionBitmap uint8
++
+ 		z := make([]ringElement, l, maxL)
+ 		for i := range y {
+ 			z[i] = polyAdd(y[i], cs1[i])
+@@ -505,7 +514,7 @@
+ 				if testingOnlyRejectionReason != nil {
+ 					testingOnlyRejectionReason("z")
+ 				}
+-				continue sign
++				rejectionBitmap |= 1
+ 			}
+ 		}
+ 
+@@ -517,7 +526,7 @@
+ 				if testingOnlyRejectionReason != nil {
+ 					testingOnlyRejectionReason("r0")
+ 				}
+-				continue sign
++				rejectionBitmap |= 2
+ 			}
+ 		}
+ 
+@@ -530,7 +539,7 @@
+ 				if testingOnlyRejectionReason != nil {
+ 					testingOnlyRejectionReason("ct0")
+ 				}
+-				continue sign
++				rejectionBitmap |= 4
+ 			}
+ 		}
+ 
+@@ -546,10 +555,12 @@
+ 			if testingOnlyRejectionReason != nil {
+ 				testingOnlyRejectionReason("h")
+ 			}
+-			continue sign
++			rejectionBitmap |= 8
+ 		}
+ 
+-		return sigEncode(ch, z, h, p)
++		bitmaps[rejectionBitmap]++
++
++		fmt.Printf("\r%#v", bitmaps)
+ 	}
+ }
+ 
