@@ -1,11 +1,31 @@
 # Test vectors for cocktail-dkg
 
-Spec: https://c2sp.org/cocktail-dkg
+Spec: <https://c2sp.org/cocktail-dkg>
 
-The test vectors are generated from a SHA256 hash of the spec co-maintainers' names. 
-Each of these assume a 2-of-3 threshold.
+These are current as of v0.2.0 of the cocktail-dkg spec.
 
-These are current as of v0.1.0 of the cocktail-dkg spec. 
+## Seed Derivation
+
+The test vectors are generated from a SHA256 hash of the spec co-maintainers' names:
+
+```text
+seed = SHA256("Daniel Bourdrez,Soatok Dreamseeker,Tjaden Hess")
+     = b171b6992cc6db1f40b18dd8b1361d642f013e4b1208a735259a516af60dcb68
+```
+
+All secret values are derived using a labeled hash with ciphersuite and threshold domain separation:
+
+```text
+derived_bytes = H(seed || ciphersuite_id || uint32_le(t) || uint32_le(n) || label)
+```
+
+Where:
+
+- `H` is the ciphersuite's hash function
+- `ciphersuite_id` is the ciphersuite identifier string
+- `t` is the threshold (little-endian 32-bit unsigned integer)
+- `n` is the number of participants (little-endian 32-bit unsigned integer)
+- `label` is a human-readable ASCII string identifying the value
 
 ## Test Vector Types
 
@@ -14,10 +34,10 @@ Each JSON file contains multiple test vectors:
 1. **2-of-3 basic**: Standard 2-of-3 DKG with empty extension
 2. **3-of-5 basic**: Standard 3-of-5 DKG with empty extension
 3. **7-of-14 basic**: Standard 7-of-14 DKG with empty extension
-4. **2-of-3 with payload extension**: 2-of-3 DKG where each participant includes a seed-derived payload, and the 
-   extension is a hash of all payloads
+4. **2-of-3 with payload extension**: 2-of-3 DKG where each participant includes a
+   seed-derived payload, and the extension is a hash of all payloads
 
-## JSON Structur
+## JSON Structure
 
 Each vector includes:
 
