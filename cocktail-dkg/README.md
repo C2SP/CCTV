@@ -41,17 +41,30 @@ Each JSON file contains multiple test vectors:
 
 Each vector includes:
 
-- `name`: Descriptive name for the test case
 - `n`: Total number of participants
 - `t`: Threshold
-- `context`: Context string (hex-encoded)
+- `session_tag`: Application session tag used to derive the context (hex-encoded)
+- `context`: Derived protocol context (hex-encoded)
 - `extension`: Application-specific extension (hex-encoded, empty string if none)
 - `payloads`: (Optional) Array of hex-encoded payloads for each participant
 - `config`: Static keys for all participants
-- `round1`: Ephemeral keys, VSS commitments, PoPs, and encrypted shares
+- `round1`: Ephemeral keys, VSS commitments, PoPs, PoP intermediate values, and encrypted shares
 - `round2`: Secret shares and verification shares
 - `round3`: Transcript hash and signatures
 - `group_public_key`: Final group public key
+- `recovery`: Recovery data for participant 1 in the 2-of-3 vectors
+
+Each `round1[*].pop_intermediate` object includes:
+
+- `message`: Raw PoP message `context || C_i || E_i`
+- `nonce_input`: Input to the ciphersuite's deterministic nonce scalar derivation
+- `nonce`: Reduced nonce scalar `k`
+- `nonce_commitment`: Nonce commitment point `R = k * B`
+- `challenge_input`: Input to the ciphersuite's challenge scalar derivation
+- `challenge`: Reduced challenge scalar `c`
+
+For secp256k1, `nonce_input` and `challenge_input` are the expanded BIP-340
+tagged-hash inputs, `SHA256(tag) || SHA256(tag) || msg`.
 
 ## Ciphersuites
 
