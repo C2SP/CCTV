@@ -15,8 +15,11 @@ s = SHAKE128()
 a = SHAKE128()
 for i in range(N):
     seed = read(s, 32)
-    write(a, seed_to_pk(seed))
-    write(a, sign_deterministic(seed, message="", context=""))
+    public_key = keygen(seed)
+    write(a, public_key)
+    signature = sign_deterministic(seed, message="", context="")
+    write(a, signature)
+    if not verify(public_key, signature): error
 result = read(a, 32)
 ```
 
@@ -26,6 +29,9 @@ the results had to be stored in full.
 In particular, the 60 million iteration test has a 99.9% chance of hitting any
 value in [0, q). Storing that many vectors would require between 225 GB
 (ML-DSA-44) and 435 GB (ML-DSA-87).
+
+100 iterations is suitable for rapid interactive tests. 10 000 iterations are
+suitable for CI. 60 000 000 iterations are suitable for development.
 
 Using fixed message, context, and signature randomness leads to the same μ for
 every test, but doesn't reduce coverage because μ is only hashed with either
@@ -73,7 +79,9 @@ For ML-DSA-65 and ML-DSA-87 (γ₂ = (q - 1) / 32):
   - LowBits(r)
   - ‖LowBits(r)‖∞ = |LowBits(r)|
 
-Note that HighBits(r), LowBits(r) = Decompose(r).
+Note that HighBits(r), LowBits(r) = Decompose(r), so Decompose(r) can be tested
+by checking its otuputs match those of HighBits(r) and LowBits(r). Similarly,
+UseHint(0, r) can be tested by checking it matches HighBits(r).
 
 ```
 f930663417278156ab05d940294a77210a809c924d8ab63ec72f4526247602c7
