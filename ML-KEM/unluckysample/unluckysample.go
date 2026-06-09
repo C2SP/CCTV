@@ -11,30 +11,30 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
+const (
+	n = 256
+	q = 3329
+	k = 2 // Change depending on parameter set! {2, 3, 4} for ML-KEM-{512,768,1024}
+)
+
 func main() {
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
 	var max int
-	d := make([]byte, 32)
+	d := make([]byte, 33)
 	for {
-		rand.Read(d)
+		rand.Read(d[:32])
+		d[32] = k
 		samples := sampleNTT(d)
-		if samples > max {
+		if samples > max || samples >= 384 {
 			max = samples
-			// 518aa157193090c8bb464f8f645ed3ea4e0bbfe6cda70f86f9768782321f1f2d: 380 samples
-			// 851cf0ee43b802c538e5b4ee4d1991a28af90eeb87fe34d54095332821e65730: 381 samples
-			// 8c7238e1965ddd73b1114b897e1bf4b308c0d9cc710d0482ab8b9e737405354a: 384 samples
-			fmt.Printf("%x: %d samples\n", d, samples)
+			fmt.Printf("%x: %d samples (k = %d)\n", d[:32], samples, k)
 		}
+
 	}
 }
-
-const (
-	n = 256
-	q = 3329
-)
 
 func sampleNTT(d []byte) int {
 	G := sha3.Sum512(d)
