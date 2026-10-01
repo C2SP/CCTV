@@ -1,7 +1,3 @@
-"""Unit tests for the Kopis KEM reference implementation."""
-
-from __future__ import annotations
-
 import json
 import os
 

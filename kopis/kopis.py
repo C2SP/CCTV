@@ -1,17 +1,4 @@
-"""Reference implementation of the Kopis KEM, as specified in ``kopis-spec.md``.
-
-Every function here corresponds to one in the specification, under the same
-name, and carries the relevant spec text above it.  A ring element is a value
-of type ``Rn``, holding the 256 canonical coefficients of the spec's ``Rn``;
-multiplication is the naive negacyclic convolution.  Any input that does not
-have the type the spec declares for it raises ``InvalidInput``.  This
-implementation is written for clarity and for generating test vectors; it is
-not constant time and MUST NOT be used in production.
-"""
-
 from __future__ import annotations
-
-import hmac
 from dataclasses import dataclass
 
 from xoflib import turbo_shake128, turbo_shake256
@@ -495,8 +482,8 @@ class Kopis:
         k, rprime = (b[:32], b[32:])
         cprime = self.PkeEncrypt(rprime, pk, randomness)
 
-        # This is not a secure implementation of Kopis. We use an if-statement here
-        if hmac.compare_digest(ct, cprime):
+        # This is not a secure implementation of Kopis. We use vartime equality and an if-statement
+        if ct == cprime:
             return k
         else:
             return TurboSHAKE256(z + ct, 32, DOMSEP_NOREJECT)

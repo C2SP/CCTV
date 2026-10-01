@@ -1,36 +1,3 @@
-"""Reproducible Kopis KEM test-vector generator.
-
-Running this script writes three files next to it:
-
-    test_vectors-kopis512.jsonl
-    test_vectors-kopis768.jsonl
-    test_vectors-kopis1024.jsonl
-
-Each line is a JSON object with the following (hex-encoded) fields:
-
-    description       text describing what the vector tests
-    sk                the KEM secret key
-    pk                serialized KEM public key corresponding to ``sk``
-    encap_randomness  randomness used to encapsulate to ``pk``
-    encapper_ct       serialized KEM ciphertext produced by encapsulation
-    decapper_ct       a KEM ciphertext (may or may not equal encapper_ct)
-    encapper_ss       shared secret from the encapsulation that built encapper_ct
-    decapper_ss       shared secret from decapsulating decapper_ct with sk
-    malformed         bool: whether some value is malformed (invalid test)
-
-A vector with ``malformed`` set has at least one value whose length is wrong
-for the parameter set, and a conforming implementation MUST reject it. Its
-output fields are still populated: they hold what an implementation that
-silently coerced the bad value to the expected length -- zero-padding what is
-too short, truncating what is too long -- would compute. Reproducing any of
-them therefore identifies that specific bug.
-
-All randomness used by this generator is derived deterministically from a
-single seeded TurboSHAKE128 instance, so the output is fully reproducible.
-"""
-
-from __future__ import annotations
-
 import json
 import os
 
