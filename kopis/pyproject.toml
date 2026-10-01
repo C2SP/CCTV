@@ -1,0 +1,14 @@
+[project]
+name = "reference-impl"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "xoflib>=0.3.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+]
