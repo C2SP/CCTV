@@ -291,33 +291,10 @@ def malformed_vectors(kem, level):
 # Now assemble the test vectors
 #
 
-# First define some mauling functions
-
-def _flip_first_bit(buf):
-    buf[0] ^= 0x01
+# XOR the given mask into buf[idx]. This is used for mauling
+def xor_at(buf, idx, mask):
+    buf[idx] ^= mask
     return bytes(buf)
-
-
-def _flip_last_bit(buf):
-    buf[-1] ^= 0x80
-    return bytes(buf)
-
-
-def _flip_middle_bit(buf):
-    buf[len(buf) // 2] ^= 0x08
-    return bytes(buf)
-
-
-def _reverse(buf):
-    return bytes(reversed(buf))
-
-
-def _zero_out(buf):
-    return bytes(len(buf))
-
-
-def _all_ones(buf):
-    return bytes([0xFF] * len(buf))
 
 # Produce a list of test vectors for the given level (1, 3, or 5)
 def vectors_for_level(level):
@@ -344,12 +321,15 @@ def vectors_for_level(level):
 
     # Now generate mauled vectors
     mauls = [
-        (_flip_first_bit, "mauled: first bit of ciphertext flipped"),
-        (_flip_last_bit, "mauled: high bit of last ciphertext byte flipped"),
-        (_flip_middle_bit, "mauled: a bit in the middle of the ciphertext flipped"),
-        (_reverse, "mauled: ciphertext byte order reversed"),
-        (_zero_out, "mauled: ciphertext replaced by all zeros"),
-        (_all_ones, "mauled: ciphertext replaced by all 0xff bytes"),
+        (lambda buf: xor_at(buf, 0, 0x01), "mauled: first bit of ciphertext flipped"),
+        (lambda buf: xor_at(buf, -1, 0x80), "mauled: high bit of last ciphertext byte flipped"),
+        (
+            lambda buf: xor_at(buf, len(buf) // 2, 0x08),
+            "mauled: a bit in the middle of the ciphertext flipped",
+        ),
+        (lambda buf: bytes(reversed(buf)), "mauled: ciphertext byte order reversed"),
+        (lambda buf: bytes(len(buf)), "mauled: ciphertext replaced by all zeros"),
+        (lambda buf: bytes([0xFF] * len(buf)), "mauled: ciphertext replaced by all 0xff bytes"),
     ]
     for maul, desc in mauls:
         out.append(mauled_vector(kem, randombytes(32), desc, maul))
