@@ -119,31 +119,31 @@ def test_roundtrip_random(kem, rng):
         assert kem.KemDecap(sk, ct) == ss
 
 # Check decrypt is the inverse of encrypt
-@pytest.mark.parametrize("k", ALL_LEVELS)
-def test_pke_roundtrip(k, rng):
+@pytest.mark.parametrize("kem", ALL_LEVELS)
+def test_pke_roundtrip(kem, rng):
     sk = rng(32)
-    pk = k.SkToPk(sk)
+    pk = kem.SkToPk(sk)
     msg = rng(32)
-    ct = k.PkeEncrypt(rng(32), pk, msg)
-    assert k.PkeDecrypt(sk, ct) == msg
+    ct = kem.PkeEncrypt(rng(32), pk, msg)
+    assert kem.PkeDecrypt(sk, ct) == msg
 
 # Check the Fujisaki-Okamoto transform is implemented
-@pytest.mark.parametrize("k", ALL_LEVELS)
-def test_implicit_rejection(k, rng):
+@pytest.mark.parametrize("kem", ALL_LEVELS)
+def test_implicit_rejection(kem, rng):
     sk = rng(32)
-    pk = k.SkToPk(sk)
-    ss, ct = k.KemEncap(rng(32), pk)
+    pk = kem.SkToPk(sk)
+    ss, ct = kem.KemEncap(rng(32), pk)
 
     mauled = bytearray(ct)
     mauled[0] ^= 0x01
     mauled = bytes(mauled)
 
     # Mauling affects the shared secret
-    dss = k.KemDecap(sk, mauled)
+    dss = kem.KemDecap(sk, mauled)
     assert dss != ss
 
     # The rejection value is TurboSHAKE256(z || ct, 32, DOMSEP_NOREJECT).
-    _, z, _, _ = k.ExpandSecretKey(sk)
+    _, z, _, _ = kem.ExpandSecretKey(sk)
     assert dss == TurboSHAKE256(z + mauled, 32, DOMSEP_NOREJECT)
 
 
@@ -151,67 +151,67 @@ def test_implicit_rejection(k, rng):
 # Well-formedness tests
 #
 
-@pytest.mark.parametrize("k", ALL_LEVELS)
+@pytest.mark.parametrize("kem", ALL_LEVELS)
 @pytest.mark.parametrize("bad_len", [0, 31, 33, 64])
-def test_wrong_length_sk_rejected(k, bad_len, rng):
+def test_wrong_length_sk_rejected(kem, bad_len, rng):
     sk = rng(bad_len)
     with pytest.raises(InvalidInput):
-        k.SkToPk(sk)
+        kem.SkToPk(sk)
     with pytest.raises(InvalidInput):
-        k.KemDecap(sk, bytes(k.CT_SIZE))
+        kem.KemDecap(sk, bytes(kem.CT_SIZE))
 
 
-@pytest.mark.parametrize("k", ALL_LEVELS)
+@pytest.mark.parametrize("kem", ALL_LEVELS)
 @pytest.mark.parametrize("delta", [-1, 1])
-def test_wrong_length_pk_rejected(k, delta, rng):
-    pk = rng(k.PK_SIZE + delta)
+def test_wrong_length_pk_rejected(kem, delta, rng):
+    pk = rng(kem.PK_SIZE + delta)
     with pytest.raises(InvalidInput):
-        k.KemEncap(rng(32), pk)
+        kem.KemEncap(rng(32), pk)
     with pytest.raises(InvalidInput):
-        k.PkeEncrypt(rng(32), pk, rng(32))
+        kem.PkeEncrypt(rng(32), pk, rng(32))
 
 
-@pytest.mark.parametrize("k", ALL_LEVELS)
+@pytest.mark.parametrize("kem", ALL_LEVELS)
 @pytest.mark.parametrize("delta", [-1, 1])
-def test_wrong_length_ct_rejected(k, delta, rng):
+def test_wrong_length_ct_rejected(kem, delta, rng):
     sk = rng(32)
-    ct = rng(k.CT_SIZE + delta)
+    ct = rng(kem.CT_SIZE + delta)
     with pytest.raises(InvalidInput):
-        k.KemDecap(sk, ct)
+        kem.KemDecap(sk, ct)
     with pytest.raises(InvalidInput):
-        k.PkeDecrypt(sk, ct)
+        kem.PkeDecrypt(sk, ct)
 
 
-@pytest.mark.parametrize("k", ALL_LEVELS)
-def test_empty_ct_rejected(k, rng):
+@pytest.mark.parametrize("kem", ALL_LEVELS)
+def test_empty_ct_rejected(kem, rng):
     with pytest.raises(InvalidInput):
-        k.KemDecap(rng(32), b"")
+        kem.KemDecap(rng(32), b"")
 
 
-@pytest.mark.parametrize("k", ALL_LEVELS)
+@pytest.mark.parametrize("kem", ALL_LEVELS)
 @pytest.mark.parametrize("bad_len", [31, 33, 48])
-def test_wrong_length_encap_randomness_rejected(k, bad_len, rng):
-    pk = k.SkToPk(rng(32))
+def test_wrong_length_encap_randomness_rejected(kem, bad_len, rng):
+    pk = kem.SkToPk(rng(32))
     with pytest.raises(InvalidInput):
-        k.KemEncap(rng(bad_len), pk)
+        kem.KemEncap(rng(bad_len), pk)
 
 
-@pytest.mark.parametrize("k", ALL_LEVELS)
+@pytest.mark.parametrize("kem", ALL_LEVELS)
 @pytest.mark.parametrize("bad_len", [31, 33])
-def test_wrong_length_pke_msg_rejected(k, bad_len, rng):
-    pk = k.SkToPk(rng(32))
+def test_wrong_length_pke_msg_rejected(kem, bad_len, rng):
+    pk = kem.SkToPk(rng(32))
     with pytest.raises(InvalidInput):
-        k.PkeEncrypt(rng(32), pk, rng(bad_len))
+        kem.PkeEncrypt(rng(32), pk, rng(bad_len))
 
 
-@pytest.mark.parametrize("k", ALL_LEVELS)
-def test_pk_for_another_parameter_set_rejected(k, rng):
+@pytest.mark.parametrize("kem", ALL_LEVELS)
+def test_pk_for_another_parameter_set_rejected(kem, rng):
     sk = rng(32)
     for other in ALL_LEVELS:
-        if other is k:
+        if other is kem:
             continue
         with pytest.raises(InvalidInput):
-            k.KemEncap(rng(32), other.SkToPk(sk))
+            kem.KemEncap(rng(32), other.SkToPk(sk))
 
 
 @pytest.mark.parametrize("delta", [-1, 1])
@@ -248,7 +248,7 @@ def test_generated_vectors_consistent(level):
     if not os.path.exists(path):
         pytest.skip(f"{path} not generated; run gen_test_vectors.py first")
 
-    k = PARAMS[level]
+    kem = PARAMS[level]
     with open(path) as f:
         vectors = [json.loads(line) for line in f if line.strip()]
 
@@ -267,24 +267,24 @@ def test_generated_vectors_consistent(level):
             # Make sure we raise an error if inputs are malformed
             if len(sk) != kopis.SK_SIZE:
                 with pytest.raises(InvalidInput):
-                    k.SkToPk(sk)
-            if len(encap_randomness) != 32 or len(pk) != k.PK_SIZE:
+                    kem.SkToPk(sk)
+            if len(encap_randomness) != 32 or len(pk) != kem.PK_SIZE:
                 with pytest.raises(InvalidInput):
-                    k.KemEncap(encap_randomness, pk)
-            if len(sk) != kopis.SK_SIZE or len(decapper_ct) != k.CT_SIZE:
+                    kem.KemEncap(encap_randomness, pk)
+            if len(sk) != kopis.SK_SIZE or len(decapper_ct) != kem.CT_SIZE:
                 with pytest.raises(InvalidInput):
-                    k.KemDecap(sk, decapper_ct)
+                    kem.KemDecap(sk, decapper_ct)
         else:
             # Well-formed vector: the implementation must reproduce it exactly.
             assert len(sk) == kopis.SK_SIZE
-            assert k.SkToPk(sk) == pk
+            assert kem.SkToPk(sk) == pk
             assert len(encap_randomness) == 32
 
-            ss, ct = k.KemEncap(encap_randomness, pk)
+            ss, ct = kem.KemEncap(encap_randomness, pk)
             assert ss == encapper_ss
             assert ct == encapper_ct
 
-            assert k.KemDecap(sk, decapper_ct) == decapper_ss
+            assert kem.KemDecap(sk, decapper_ct) == decapper_ss
 
             if decapper_ct == encapper_ct:
                 # Honest vector: encapper and decapper shared secrets agree.
