@@ -302,7 +302,7 @@ def test_generated_vectors_consistent(level):
 
 @pytest.mark.parametrize("level", [512, 768, 1024])
 def test_generated_vectors_have_all_categories(level):
-    path = os.path.join(HERE, f"test_vectors-kopis{level}.jsonl")
+    path = os.path.join(HERE, f"test_vectors_kopis{level}.jsonl")
     if not os.path.exists(path):
         pytest.skip(f"{path} not generated; run gen_test_vectors.py first")
 
