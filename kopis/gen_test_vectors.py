@@ -6,7 +6,7 @@ from xoflib import turbo_shake128
 import kopis
 
 # Deterministic global RNG used for all test vectors
-_RNG = turbo_shake128(0x1F, b"kopis-kem test vector generator :: seed v1")
+_RNG = turbo_shake128(0x1F, b"kopis-test-vectors-seed1")
 
 def randombytes(n: int) -> bytes:
     """Return the next ``n`` bytes from the global RNG."""
