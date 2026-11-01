@@ -364,7 +364,7 @@ def main():
     here = os.path.dirname(os.path.abspath(__file__))
     for level in (512, 768, 1024):
         vectors = vectors_for_level(level)
-        path = os.path.join(here, f"test_vectors-kopis{level}.jsonl")
+        path = os.path.join(here, f"test_vectors_kopis{level}.jsonl")
         with open(path, "w") as f:
             f.writelines(json.dumps(v) + "\n" for v in vectors)
         n_honest = sum(1 for v in vectors if v["description"].startswith("honest"))
