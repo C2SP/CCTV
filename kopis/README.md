@@ -2,7 +2,7 @@
 
 This directory contains three Python files:
 
-* `kopis.py` — An implementation of the [Kopis](https://c2sp.org/kopis) key encapsulation mechanism (KEM)
+* `kopis.py` — An implementation of the [Kopis](https://c2sp.org/kopis) key encapsulation mechanism (KEM). DANGER: this not constant-time. Use it ONLY for generating and checking test vectors.
 * `test_kopis.py` — Unit tests for `kopis.py`
 * `gen_test_vectors.py` — A deterministic Kopis test vector generator
 
@@ -34,3 +34,7 @@ field | type | desc |
 All bytestrings are represented as a lowercase hex string.
 
 If a test is marked `malformed`, then there is at least one field that should cause an error when parsing. If no errors occur when parsing, this should be considered an implementation flaw.
+
+The output fields of a malformed vector are still filled in. They are what an implementation would produce if it silently coerced the bad value to the expected length, zero-padding a value that is too short and truncating one that is too long, and then carried on as normal. An implementation that reproduces these outputs has exactly that bug. The `description` field says which value is malformed and how the outputs were derived.
+
+Vector numbers are unique across all three files, not per file.

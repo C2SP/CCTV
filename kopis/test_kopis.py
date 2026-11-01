@@ -24,6 +24,17 @@ ALL_LEVELS = [KOPIS_512, KOPIS_768, KOPIS_1024]
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
+# Produces a deterministic RNG given a pytest context. This is a fixture, so any time you see `rng`
+# in the args of a test function, that means this function is called with the caller's context, and
+# the output is bound to `rng`. So when `rng` is called below, it's really calling `xof.read`.
+@pytest.fixture
+def rng(request):
+    """Deterministic replacement for ``os.urandom``: a TurboSHAKE128 sponge seeded
+    with this test's own node id, so every test is reproducible on its own."""
+    xof = turbo_shake128(0x1F, f"kopis unit tests :: {request.node.nodeid}".encode())
+    return xof.read
+
+
 # ---------------------------------------------------------------------------
 # TurboSHAKE: cross-check against RFC 9861 test vectors.
 # ---------------------------------------------------------------------------
@@ -132,11 +143,11 @@ def test_advertised_sizes(k, pk_size, ct_size):
 
 
 @pytest.mark.parametrize("k", ALL_LEVELS)
-def test_output_sizes(k):
-    sk = os.urandom(32)
+def test_output_sizes(k, rng):
+    sk = rng(32)
     pk = k.SkToPk(sk)
     assert len(pk) == k.PK_SIZE
-    ss, ct = k.KemEncap(os.urandom(32), pk)
+    ss, ct = k.KemEncap(rng(32), pk)
     assert len(ss) == 32
     assert len(ct) == k.CT_SIZE
     assert len(k.KemDecap(sk, ct)) == 32
@@ -148,15 +159,15 @@ def test_output_sizes(k):
 
 
 @pytest.mark.parametrize("k", ALL_LEVELS)
-def test_sk_to_pk_deterministic(k):
-    sk = os.urandom(32)
+def test_sk_to_pk_deterministic(k, rng):
+    sk = rng(32)
     assert k.SkToPk(sk) == k.SkToPk(sk)
 
 
 @pytest.mark.parametrize("k", ALL_LEVELS)
-def test_encap_deterministic_in_randomness(k):
-    pk = k.SkToPk(os.urandom(32))
-    randomness = os.urandom(32)
+def test_encap_deterministic_in_randomness(k, rng):
+    pk = k.SkToPk(rng(32))
+    randomness = rng(32)
     assert k.KemEncap(randomness, pk) == k.KemEncap(randomness, pk)
 
 
@@ -175,37 +186,37 @@ def test_domain_separation_by_level(k):
 
 
 @pytest.mark.parametrize("k", ALL_LEVELS)
-def test_roundtrip_random(k):
-    sk = os.urandom(32)
+def test_roundtrip_random(k, rng):
+    sk = rng(32)
     pk = k.SkToPk(sk)
     for _ in range(10):
-        ss, ct = k.KemEncap(os.urandom(32), pk)
+        ss, ct = k.KemEncap(rng(32), pk)
         assert k.KemDecap(sk, ct) == ss
 
 
 # Roundtrip using odd secret keys
 @pytest.mark.parametrize("k", ALL_LEVELS)
-def test_roundtrip_edge_secret_keys(k):
+def test_roundtrip_edge_secret_keys(k, rng):
     for sk in (bytes(32), bytes([0xFF] * 32), bytes(range(32))):
         pk = k.SkToPk(sk)
-        ss, ct = k.KemEncap(os.urandom(32), pk)
+        ss, ct = k.KemEncap(rng(32), pk)
         assert k.KemDecap(sk, ct) == ss
 
 
 @pytest.mark.parametrize("k", ALL_LEVELS)
-def test_pke_roundtrip(k):
-    sk = os.urandom(32)
+def test_pke_roundtrip(k, rng):
+    sk = rng(32)
     pk = k.SkToPk(sk)
-    msg = os.urandom(32)
-    ct = k.PkeEncrypt(os.urandom(32), pk, msg)
+    msg = rng(32)
+    ct = k.PkeEncrypt(rng(32), pk, msg)
     assert k.PkeDecrypt(sk, ct) == msg
 
 
 @pytest.mark.parametrize("k", ALL_LEVELS)
-def test_implicit_rejection(k):
-    sk = os.urandom(32)
+def test_implicit_rejection(k, rng):
+    sk = rng(32)
     pk = k.SkToPk(sk)
-    ss, ct = k.KemEncap(os.urandom(32), pk)
+    ss, ct = k.KemEncap(rng(32), pk)
 
     mauled = bytearray(ct)
     mauled[0] ^= 0x01
@@ -221,11 +232,11 @@ def test_implicit_rejection(k):
 
 
 @pytest.mark.parametrize("k", ALL_LEVELS)
-def test_wrong_sk_decap_differs(k):
-    sk = os.urandom(32)
+def test_wrong_sk_decap_differs(k, rng):
+    sk = rng(32)
     pk = k.SkToPk(sk)
-    ss, ct = k.KemEncap(os.urandom(32), pk)
-    other_sk = os.urandom(32)
+    ss, ct = k.KemEncap(rng(32), pk)
+    other_sk = rng(32)
     assert k.KemDecap(other_sk, ct) != ss
 
 
@@ -236,8 +247,8 @@ def test_wrong_sk_decap_differs(k):
 
 @pytest.mark.parametrize("k", ALL_LEVELS)
 @pytest.mark.parametrize("bad_len", [0, 31, 33, 64])
-def test_wrong_length_sk_rejected(k, bad_len):
-    sk = os.urandom(bad_len)
+def test_wrong_length_sk_rejected(k, bad_len, rng):
+    sk = rng(bad_len)
     with pytest.raises(InvalidInput):
         k.SkToPk(sk)
     with pytest.raises(InvalidInput):
@@ -246,19 +257,19 @@ def test_wrong_length_sk_rejected(k, bad_len):
 
 @pytest.mark.parametrize("k", ALL_LEVELS)
 @pytest.mark.parametrize("delta", [-1, 1])
-def test_wrong_length_pk_rejected(k, delta):
-    pk = os.urandom(k.PK_SIZE + delta)
+def test_wrong_length_pk_rejected(k, delta, rng):
+    pk = rng(k.PK_SIZE + delta)
     with pytest.raises(InvalidInput):
-        k.KemEncap(os.urandom(32), pk)
+        k.KemEncap(rng(32), pk)
     with pytest.raises(InvalidInput):
-        k.PkeEncrypt(os.urandom(32), pk, os.urandom(32))
+        k.PkeEncrypt(rng(32), pk, rng(32))
 
 
 @pytest.mark.parametrize("k", ALL_LEVELS)
 @pytest.mark.parametrize("delta", [-1, 1])
-def test_wrong_length_ct_rejected(k, delta):
-    sk = os.urandom(32)
-    ct = os.urandom(k.CT_SIZE + delta)
+def test_wrong_length_ct_rejected(k, delta, rng):
+    sk = rng(32)
+    ct = rng(k.CT_SIZE + delta)
     with pytest.raises(InvalidInput):
         k.KemDecap(sk, ct)
     with pytest.raises(InvalidInput):
@@ -266,35 +277,35 @@ def test_wrong_length_ct_rejected(k, delta):
 
 
 @pytest.mark.parametrize("k", ALL_LEVELS)
-def test_empty_ct_rejected(k):
+def test_empty_ct_rejected(k, rng):
     with pytest.raises(InvalidInput):
-        k.KemDecap(os.urandom(32), b"")
+        k.KemDecap(rng(32), b"")
 
 
 @pytest.mark.parametrize("k", ALL_LEVELS)
 @pytest.mark.parametrize("bad_len", [31, 33, 48])
-def test_wrong_length_encap_randomness_rejected(k, bad_len):
-    pk = k.SkToPk(os.urandom(32))
+def test_wrong_length_encap_randomness_rejected(k, bad_len, rng):
+    pk = k.SkToPk(rng(32))
     with pytest.raises(InvalidInput):
-        k.KemEncap(os.urandom(bad_len), pk)
+        k.KemEncap(rng(bad_len), pk)
 
 
 @pytest.mark.parametrize("k", ALL_LEVELS)
 @pytest.mark.parametrize("bad_len", [31, 33])
-def test_wrong_length_pke_msg_rejected(k, bad_len):
-    pk = k.SkToPk(os.urandom(32))
+def test_wrong_length_pke_msg_rejected(k, bad_len, rng):
+    pk = k.SkToPk(rng(32))
     with pytest.raises(InvalidInput):
-        k.PkeEncrypt(os.urandom(32), pk, os.urandom(bad_len))
+        k.PkeEncrypt(rng(32), pk, rng(bad_len))
 
 
 @pytest.mark.parametrize("k", ALL_LEVELS)
-def test_pk_for_another_parameter_set_rejected(k):
-    sk = os.urandom(32)
+def test_pk_for_another_parameter_set_rejected(k, rng):
+    sk = rng(32)
     for other in ALL_LEVELS:
         if other is k:
             continue
         with pytest.raises(InvalidInput):
-            k.KemEncap(os.urandom(32), other.SkToPk(sk))
+            k.KemEncap(rng(32), other.SkToPk(sk))
 
 
 @pytest.mark.parametrize("delta", [-1, 1])

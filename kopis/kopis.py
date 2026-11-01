@@ -94,7 +94,7 @@ class Rn:
 
         self.n = n
         self.mod = mod
-        self.coeffs = [c % (1 << n) for c in coeffs]
+        self.coeffs = list(coeffs)
 
     def __eq__(self, other: object) -> bool:
         return (
