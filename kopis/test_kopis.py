@@ -20,7 +20,7 @@ from kopis import (
 )
 
 ALL_LEVELS = [KOPIS_512, KOPIS_768, KOPIS_1024]
-ALL_MODULI =  [1, 3, 4, 6, 10, 13]
+ALL_MODULI = [1, 3, 4, 6, 10, 13]
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -34,9 +34,11 @@ def rng(request):
     xof = turbo_shake128(0x1F, f"kopis unit tests :: {request.node.nodeid}".encode())
     return xof.read
 
+
 #
 # Serialization tests
 #
+
 
 @pytest.mark.parametrize("n", ALL_MODULI)
 def test_serialize_deserialize_elem_roundtrip(n):
@@ -79,6 +81,7 @@ def test_deserialize_masks_to_n_bits(n):
 # Arithmetic tests
 #
 
+
 # X^255 * X = X^256 = -1 in Rn
 @pytest.mark.parametrize("n", ALL_MODULI)
 def test_mul_is_negacyclic(n):
@@ -106,6 +109,7 @@ def test_mul_identity(n):
 # Number of iterations for correctness tests
 CORRECTNESS_N_ITERS = 5
 
+
 # Check decap is the inverse of encap
 @pytest.mark.parametrize("kem", ALL_LEVELS)
 def test_roundtrip_random(kem, rng):
@@ -122,6 +126,7 @@ def test_roundtrip_random(kem, rng):
             ss, ct = kem.KemEncap(rng(32), pk)
             assert kem.KemDecap(sk, ct) == ss
 
+
 # Check decrypt is the inverse of encrypt
 @pytest.mark.parametrize("kem", ALL_LEVELS)
 def test_pke_roundtrip(kem, rng):
@@ -131,6 +136,7 @@ def test_pke_roundtrip(kem, rng):
         msg = rng(32)
         ct = kem.PkeEncrypt(rng(32), pk, msg)
         assert kem.PkeDecrypt(sk, ct) == msg
+
 
 # Check the Fujisaki-Okamoto transform is implemented
 @pytest.mark.parametrize("kem", ALL_LEVELS)
@@ -156,6 +162,7 @@ def test_implicit_rejection(kem, rng):
 #
 # Well-formedness tests
 #
+
 
 @pytest.mark.parametrize("kem", ALL_LEVELS)
 @pytest.mark.parametrize("bad_len", [0, 31, 33, 64])
@@ -242,10 +249,10 @@ def test_mismatched_ring_rejected():
         serialize_elem(10, a)
 
 
-
 #
 # Known-answer tests
 #
+
 
 # Check that the test vectors produced in `gen_test_vectors.py`, if present, pass
 @pytest.mark.parametrize("level", [512, 768, 1024])
