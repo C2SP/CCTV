@@ -257,9 +257,7 @@ def test_mismatched_ring_rejected():
 # Check that the test vectors produced in `gen_test_vectors.py`, if present, pass
 @pytest.mark.parametrize("level", [512, 768, 1024])
 def test_generated_vectors_consistent(level):
-    path = os.path.join(HERE, f"test_vectors-kopis{level}.jsonl")
-    if not os.path.exists(path):
-        pytest.skip(f"{path} not generated; run gen_test_vectors.py first")
+    path = os.path.join(HERE, f"test_vectors_kopis{level}.jsonl")
 
     kem = PARAMS[level]
     with open(path) as f:
