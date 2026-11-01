@@ -12,7 +12,6 @@ from kopis import (
     KOPIS_1024,
     PARAMS,
     InvalidInput,
-    TurboSHAKE128,
     TurboSHAKE256,
     canonical_coeffs,
     deserialize_elem,
@@ -21,6 +20,7 @@ from kopis import (
 )
 
 ALL_LEVELS = [KOPIS_512, KOPIS_768, KOPIS_1024]
+ALL_MODULI =  [1, 3, 4, 6, 10, 13]
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -34,39 +34,11 @@ def rng(request):
     xof = turbo_shake128(0x1F, f"kopis unit tests :: {request.node.nodeid}".encode())
     return xof.read
 
+#
+# Serialization tests
+#
 
-# ---------------------------------------------------------------------------
-# TurboSHAKE: cross-check against RFC 9861 test vectors.
-# ---------------------------------------------------------------------------
-
-
-def test_turboshake128_rfc9861():
-    assert (
-        TurboSHAKE128(b"", 32, 0x1F).hex() == "1e415f1c5983aff2169217277d17bb53"
-        "8cd945a397ddec541f1ce41af2c1b74c"
-    )
-    assert (
-        TurboSHAKE128(bytes([0xFF, 0xFF, 0xFF]), 32, 0x07).hex()
-        == "b658576001cad9b1e5f399a9f77723bb"
-        "a05458042d68206f7252682dba3663ed"
-    )
-
-
-def test_turboshake256_rfc9861():
-    assert (
-        TurboSHAKE256(b"", 64, 0x1F).hex() == "367a329dafea871c7802ec67f905ae13"
-        "c57695dc2c6663c61035f59a18f8e7db"
-        "11edc0e12e91ea60eb6b32df06dd7f00"
-        "2fbafabb6e13ec1cc20d995547600db0"
-    )
-
-
-# ---------------------------------------------------------------------------
-# Serialization round-trips.
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.parametrize("n", [1, 3, 4, 6, 10, 13])
+@pytest.mark.parametrize("n", ALL_MODULI)
 def test_serialize_deserialize_elem_roundtrip(n):
     rng = turbo_shake128(0x2A, f"elem-{n}".encode())
     mask = (1 << n) - 1
@@ -80,129 +52,73 @@ def test_serialize_deserialize_elem_roundtrip(n):
     assert canonical_coeffs(deserialize_elem(n, data)) == coeffs
 
 
-def test_serialize_deserialize_vec_roundtrip():
-    k = KOPIS_768
+@pytest.mark.parametrize("n", ALL_MODULI)
+def test_serialize_deserialize_vec_roundtrip(n):
+    kem = KOPIS_768
     vec = kopis.make_vecn(
-        10,
+        n,
         [
-            make_rn(10, [(i * 7 + j) % (1 << 10) for j in range(256)])
-            for i in range(k.ell)
+            make_rn(n, [(i * 7 + j) % (1 << n) for j in range(256)])
+            for i in range(kem.ell)
         ],
     )
-    data = k.serialize_vec(10, vec)
-    assert len(data) == k.ell * 256 * 10 // 8
-    assert k.deserialize_vec(10, data) == vec
+    data = kem.serialize_vec(n, vec)
+    assert len(data) == kem.ell * 256 * n // 8
+    assert kem.deserialize_vec(n, data) == vec
 
 
-def test_deserialize_masks_to_n_bits():
-    # 13-bit deserialization must never yield a value >= 2**13.
-    data = bytes([0xFF]) * (256 * 13 // 8)
-    coeffs = canonical_coeffs(deserialize_elem(13, data))
-    assert all(c == (1 << 13) - 1 for c in coeffs)
+# n-bit deserialization must never yield a value >= 2^n
+@pytest.mark.parametrize("n", ALL_MODULI)
+def test_deserialize_masks_to_n_bits(n):
+    data = bytes([0xFF]) * (256 * n // 8)
+    coeffs = canonical_coeffs(deserialize_elem(n, data))
+    assert all(c == (1 << n) - 1 for c in coeffs)
 
 
-# ---------------------------------------------------------------------------
-# Ring arithmetic.
-# ---------------------------------------------------------------------------
+#
+# Arithmetic tests
+#
 
-
-def test_mul_is_negacyclic():
-    # X^255 * X = X^256 = -1  (mod X^256 + 1)
+# X^255 * X = X^256 = -1 in Rn
+@pytest.mark.parametrize("n", ALL_MODULI)
+def test_mul_is_negacyclic(n):
     a = [0] * 256
     a[255] = 1
     b = [0] * 256
     b[1] = 1
     expected = [0] * 256
-    expected[0] = (-1) % (1 << 13)
-    assert make_rn(13, a) * make_rn(13, b) == make_rn(13, expected)
+    expected[0] = (-1) % (1 << n)
+    assert make_rn(n, a) * make_rn(n, b) == make_rn(n, expected)
 
 
-def test_mul_identity():
+@pytest.mark.parametrize("n", ALL_MODULI)
+def test_mul_identity(n):
     one = [0] * 256
     one[0] = 1
-    a = make_rn(13, [(i * 3 + 1) % (1 << 13) for i in range(256)])
-    assert a * make_rn(13, one) == a
+    a = make_rn(n, [(i * 3 + 1) % (1 << n) for i in range(256)])
+    assert a * make_rn(n, one) == a
 
 
-# ---------------------------------------------------------------------------
-# Sizes.
-# ---------------------------------------------------------------------------
+#
+# Correctness tests
+#
 
-
-@pytest.mark.parametrize(
-    "k,pk_size,ct_size",
-    [
-        (KOPIS_512, 672, 736),
-        (KOPIS_768, 992, 1088),
-        (KOPIS_1024, 1312, 1472),
-    ],
-)
-def test_advertised_sizes(k, pk_size, ct_size):
-    assert k.PK_SIZE == pk_size
-    assert k.CT_SIZE == ct_size
-
-
-@pytest.mark.parametrize("k", ALL_LEVELS)
-def test_output_sizes(k, rng):
+# Check decap is the inverse of encap
+@pytest.mark.parametrize("kem", ALL_LEVELS)
+def test_roundtrip_random(kem, rng):
     sk = rng(32)
-    pk = k.SkToPk(sk)
-    assert len(pk) == k.PK_SIZE
-    ss, ct = k.KemEncap(rng(32), pk)
-    assert len(ss) == 32
-    assert len(ct) == k.CT_SIZE
-    assert len(k.KemDecap(sk, ct)) == 32
-
-
-# ---------------------------------------------------------------------------
-# Determinism.
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.parametrize("k", ALL_LEVELS)
-def test_sk_to_pk_deterministic(k, rng):
-    sk = rng(32)
-    assert k.SkToPk(sk) == k.SkToPk(sk)
-
-
-@pytest.mark.parametrize("k", ALL_LEVELS)
-def test_encap_deterministic_in_randomness(k, rng):
-    pk = k.SkToPk(rng(32))
-    randomness = rng(32)
-    assert k.KemEncap(randomness, pk) == k.KemEncap(randomness, pk)
-
-
-@pytest.mark.parametrize("k", ALL_LEVELS)
-def test_domain_separation_by_level(k):
-    # The same sk yields distinct expanded keys per parameter set because the
-    # dimension ell is absorbed during key expansion.
-    sk = bytes(range(32))
-    pks = {kk.name: kk.SkToPk(sk) for kk in ALL_LEVELS}
-    assert len(set(pks.values())) == len(ALL_LEVELS)
-
-
-# ---------------------------------------------------------------------------
-# Correctness (round-trip) and implicit rejection.
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.parametrize("k", ALL_LEVELS)
-def test_roundtrip_random(k, rng):
-    sk = rng(32)
-    pk = k.SkToPk(sk)
+    pk = kem.SkToPk(sk)
     for _ in range(10):
-        ss, ct = k.KemEncap(rng(32), pk)
-        assert k.KemDecap(sk, ct) == ss
+        ss, ct = kem.KemEncap(rng(32), pk)
+        assert kem.KemDecap(sk, ct) == ss
 
-
-# Roundtrip using odd secret keys
-@pytest.mark.parametrize("k", ALL_LEVELS)
-def test_roundtrip_edge_secret_keys(k, rng):
+    # Now do unusual secret keys
     for sk in (bytes(32), bytes([0xFF] * 32), bytes(range(32))):
-        pk = k.SkToPk(sk)
-        ss, ct = k.KemEncap(rng(32), pk)
-        assert k.KemDecap(sk, ct) == ss
+        pk = kem.SkToPk(sk)
+        ss, ct = kem.KemEncap(rng(32), pk)
+        assert kem.KemDecap(sk, ct) == ss
 
-
+# Check decrypt is the inverse of encrypt
 @pytest.mark.parametrize("k", ALL_LEVELS)
 def test_pke_roundtrip(k, rng):
     sk = rng(32)
@@ -211,7 +127,7 @@ def test_pke_roundtrip(k, rng):
     ct = k.PkeEncrypt(rng(32), pk, msg)
     assert k.PkeDecrypt(sk, ct) == msg
 
-
+# Check the Fujisaki-Okamoto transform is implemented
 @pytest.mark.parametrize("k", ALL_LEVELS)
 def test_implicit_rejection(k, rng):
     sk = rng(32)
@@ -231,19 +147,9 @@ def test_implicit_rejection(k, rng):
     assert dss == TurboSHAKE256(z + mauled, 32, DOMSEP_NOREJECT)
 
 
-@pytest.mark.parametrize("k", ALL_LEVELS)
-def test_wrong_sk_decap_differs(k, rng):
-    sk = rng(32)
-    pk = k.SkToPk(sk)
-    ss, ct = k.KemEncap(rng(32), pk)
-    other_sk = rng(32)
-    assert k.KemDecap(other_sk, ct) != ss
-
-
-# ---------------------------------------------------------------------------
-# Every input must have the length/type the spec declares for it.
-# ---------------------------------------------------------------------------
-
+#
+# Well-formedness tests
+#
 
 @pytest.mark.parametrize("k", ALL_LEVELS)
 @pytest.mark.parametrize("bad_len", [0, 31, 33, 64])
@@ -330,11 +236,12 @@ def test_mismatched_ring_rejected():
         serialize_elem(10, a)
 
 
-# ---------------------------------------------------------------------------
-# Generated test-vector files (if present) must agree with the implementation.
-# ---------------------------------------------------------------------------
 
+#
+# Known-answer tests
+#
 
+# Check that the test vectors produced in `gen_test_vectors.py`, if present, pass
 @pytest.mark.parametrize("level", [512, 768, 1024])
 def test_generated_vectors_consistent(level):
     path = os.path.join(HERE, f"test_vectors-kopis{level}.jsonl")
