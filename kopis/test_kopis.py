@@ -103,48 +103,54 @@ def test_mul_identity(n):
 # Correctness tests
 #
 
+# Number of iterations for correctness tests
+CORRECTNESS_N_ITERS = 5
+
 # Check decap is the inverse of encap
 @pytest.mark.parametrize("kem", ALL_LEVELS)
 def test_roundtrip_random(kem, rng):
-    sk = rng(32)
-    pk = kem.SkToPk(sk)
-    for _ in range(10):
-        ss, ct = kem.KemEncap(rng(32), pk)
-        assert kem.KemDecap(sk, ct) == ss
-
-    # Now do unusual secret keys
-    for sk in (bytes(32), bytes([0xFF] * 32), bytes(range(32))):
+    for _ in range(CORRECTNESS_N_ITERS):
+        sk = rng(32)
         pk = kem.SkToPk(sk)
-        ss, ct = kem.KemEncap(rng(32), pk)
-        assert kem.KemDecap(sk, ct) == ss
+        for _ in range(10):
+            ss, ct = kem.KemEncap(rng(32), pk)
+            assert kem.KemDecap(sk, ct) == ss
+
+        # Now do unusual secret keys
+        for sk in (bytes(32), bytes([0xFF] * 32), bytes(range(32))):
+            pk = kem.SkToPk(sk)
+            ss, ct = kem.KemEncap(rng(32), pk)
+            assert kem.KemDecap(sk, ct) == ss
 
 # Check decrypt is the inverse of encrypt
 @pytest.mark.parametrize("kem", ALL_LEVELS)
 def test_pke_roundtrip(kem, rng):
-    sk = rng(32)
-    pk = kem.SkToPk(sk)
-    msg = rng(32)
-    ct = kem.PkeEncrypt(rng(32), pk, msg)
-    assert kem.PkeDecrypt(sk, ct) == msg
+    for _ in range(CORRECTNESS_N_ITERS):
+        sk = rng(32)
+        pk = kem.SkToPk(sk)
+        msg = rng(32)
+        ct = kem.PkeEncrypt(rng(32), pk, msg)
+        assert kem.PkeDecrypt(sk, ct) == msg
 
 # Check the Fujisaki-Okamoto transform is implemented
 @pytest.mark.parametrize("kem", ALL_LEVELS)
 def test_implicit_rejection(kem, rng):
-    sk = rng(32)
-    pk = kem.SkToPk(sk)
-    ss, ct = kem.KemEncap(rng(32), pk)
+    for _ in range(CORRECTNESS_N_ITERS):
+        sk = rng(32)
+        pk = kem.SkToPk(sk)
+        ss, ct = kem.KemEncap(rng(32), pk)
 
-    mauled = bytearray(ct)
-    mauled[0] ^= 0x01
-    mauled = bytes(mauled)
+        mauled = bytearray(ct)
+        mauled[0] ^= 0x01
+        mauled = bytes(mauled)
 
-    # Mauling affects the shared secret
-    dss = kem.KemDecap(sk, mauled)
-    assert dss != ss
+        # Mauling should affect the shared secret
+        dss = kem.KemDecap(sk, mauled)
+        assert dss != ss
 
-    # The rejection value is TurboSHAKE256(z || ct, 32, DOMSEP_NOREJECT).
-    _, z, _, _ = kem.ExpandSecretKey(sk)
-    assert dss == TurboSHAKE256(z + mauled, 32, DOMSEP_NOREJECT)
+        # The rejection value is TurboSHAKE256(z || ct, 32, DOMSEP_NOREJECT)
+        _, z, _, _ = kem.ExpandSecretKey(sk)
+        assert dss == TurboSHAKE256(z + mauled, 32, DOMSEP_NOREJECT)
 
 
 #
