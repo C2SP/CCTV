@@ -380,7 +380,7 @@ def test_generated_vectors_consistent(level):
             assert k.KemDecap(sk, decapper_ct) == decapper_ss
 
             if decapper_ct == encapper_ct:
-                # Good vector: encapper and decapper shared secrets agree.
+                # Honest vector: encapper and decapper shared secrets agree.
                 assert decapper_ss == encapper_ss
             else:
                 # Mauled vector: the decapper obtains a different shared secret.
@@ -397,7 +397,7 @@ def test_generated_vectors_have_all_categories(level):
         vectors = [json.loads(line) for line in f if line.strip()]
 
     descriptions = [v["description"] for v in vectors]
-    assert any(d.startswith("good") for d in descriptions)
+    assert any(d.startswith("honest") for d in descriptions)
     assert any(d.startswith("mauled") for d in descriptions)
     assert any(v["malformed"] for v in vectors)
     # Malformed vectors carry a coerced-computation result, not an empty field.
