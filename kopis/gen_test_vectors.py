@@ -241,7 +241,7 @@ def malformed_vectors(kem, level):
         True,
     )
 
-    # 9. Size both cipehrtexts for a different parameter set. A bad impl would truncate/pad to the
+    # 9. Size both ciphertexts for a different parameter set. A bad impl would truncate/pad to the
     # CT_SIZE of the matching parameter set.
     r = randombytes(32)
     ss, bad_ct = other.KemEncap(r, coerce(base_pk, other.PK_SIZE))
@@ -306,7 +306,7 @@ def xor_at(buf, idx, mask):
     return bytes(buf)
 
 
-# Produce a list of test vectors for the given level (1, 3, or 5)
+# Produce a list of test vectors for the given level (512, 768, or 1024)
 def vectors_for_level(level):
     kem = kopis.PARAMS[level]
     out = []
@@ -354,7 +354,7 @@ def vectors_for_level(level):
     for maul, desc in mauls:
         out.append(mauled_vector(kem, randombytes(32), desc, maul))
 
-    # Now generate malformed vectosr
+    # Now generate malformed vectors
     out.extend(malformed_vectors(kem, level))
 
     return out

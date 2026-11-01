@@ -2,7 +2,7 @@
 
 This directory contains three Python files:
 
-* `kopis.py` — An implementation of the [Kopis](https://c2sp.org/kopis) key encapsulation mechanism (KEM). DANGER: this not constant-time. Use it ONLY for generating and checking test vectors.
+* `kopis.py` — An implementation of the [Kopis](https://c2sp.org/kopis) key encapsulation mechanism (KEM). DANGER: this is not constant-time. Use it ONLY for generating and checking test vectors.
 * `test_kopis.py` — Unit tests for `kopis.py`.
 * `gen_test_vectors.py` — A deterministic Kopis test vector generator. This is what generated the `.jsonl` files in this directory.
 
