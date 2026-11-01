@@ -1,7 +1,7 @@
 [project]
 name = "kopis-test-vectors"
 version = "0.1.0"
-description = "Reference implementation and test vector generator for the Kopis KEM"
+description = "Implementation and test vector generator for the Kopis KEM"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
