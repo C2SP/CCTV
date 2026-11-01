@@ -7,11 +7,11 @@ from xoflib import turbo_shake128
 import kopis
 from kopis import (
     DOMSEP_NOREJECT,
-    InvalidInput,
     KOPIS_512,
     KOPIS_768,
     KOPIS_1024,
     PARAMS,
+    InvalidInput,
     TurboSHAKE128,
     TurboSHAKE256,
     canonical_coeffs,

@@ -8,9 +8,11 @@ import kopis
 # Deterministic global RNG used for all test vectors
 _RNG = turbo_shake128(0x1F, b"kopis-test-vectors-seed1")
 
+
 def randombytes(n: int) -> bytes:
     """Return the next ``n`` bytes from the global RNG."""
     return _RNG.read(n)
+
 
 #
 # Helper functions
@@ -18,6 +20,7 @@ def randombytes(n: int) -> bytes:
 
 # Global counter to number vectors as we make them
 vectors_generated = 0
+
 
 def vector(
     description,
@@ -46,6 +49,7 @@ def vector(
         "malformed": malformed,
     }
 
+
 def honest_vector(kem, sk, description):
     """Generate an honest test vector (no tampering) with the given secret key"""
     pk = kem.SkToPk(sk)
@@ -54,6 +58,7 @@ def honest_vector(kem, sk, description):
     dss = kem.KemDecap(sk, ct)
     assert dss == ss, "honest round-trip must agree"
     return vector(description, sk, pk, encap_randomness, ct, ct, ss, dss, False)
+
 
 def mauled_vector(kem, sk, description, maulf):
     """Generate a mauled-ciphertext test vector with the given sk and mauling function"""
@@ -68,13 +73,16 @@ def mauled_vector(kem, sk, description, maulf):
     assert dss != ss, "mauled ciphertext must yield a different shared secret"
     return vector(description, sk, pk, encap_randomness, ct, mauled_ct, ss, dss, False)
 
+
 #
 # Malformed vectors
 #
 
+
 def coerce(value, size):
     """Zero-pad or truncate ``value`` to ``size`` bytes"""
     return value[:size] + bytes(max(0, size - len(value)))
+
 
 def malformed_vectors(kem, level):
     """Generate a series of malformed vectors for ``kem``."""
@@ -291,10 +299,12 @@ def malformed_vectors(kem, level):
 # Now assemble the test vectors
 #
 
+
 # XOR the given mask into buf[idx]. This is used for mauling
 def xor_at(buf, idx, mask):
     buf[idx] ^= mask
     return bytes(buf)
+
 
 # Produce a list of test vectors for the given level (1, 3, or 5)
 def vectors_for_level(level):
@@ -303,14 +313,18 @@ def vectors_for_level(level):
 
     # Generate 4 random honest vectors
     for i in range(4):
-        out.append(honest_vector(kem, randombytes(32), f"honest: random secret key #{i + 1}"))
+        out.append(
+            honest_vector(kem, randombytes(32), f"honest: random secret key #{i + 1}")
+        )
     # Make a vector with the all-zero secret key
     out.append(honest_vector(kem, bytes(32), "honest: all-zero secret key"))
     # Make a vector with the all-one secret key
     out.append(honest_vector(kem, bytes([0xFF] * 32), "honest: all-0xff secret key"))
     # Make a vector with a structured secret key (0x00, 0x01, ... 0x1f).
     out.append(
-        honest_vector(kem, bytes(range(32)), "honest: structured secret key (0x00..0x1f)")
+        honest_vector(
+            kem, bytes(range(32)), "honest: structured secret key (0x00..0x1f)"
+        )
     )
     # Make a vector with a single non-zero byte
     out.append(
@@ -322,14 +336,20 @@ def vectors_for_level(level):
     # Now generate mauled vectors
     mauls = [
         (lambda buf: xor_at(buf, 0, 0x01), "mauled: first bit of ciphertext flipped"),
-        (lambda buf: xor_at(buf, -1, 0x80), "mauled: high bit of last ciphertext byte flipped"),
+        (
+            lambda buf: xor_at(buf, -1, 0x80),
+            "mauled: high bit of last ciphertext byte flipped",
+        ),
         (
             lambda buf: xor_at(buf, len(buf) // 2, 0x08),
             "mauled: a bit in the middle of the ciphertext flipped",
         ),
         (lambda buf: bytes(reversed(buf)), "mauled: ciphertext byte order reversed"),
         (lambda buf: bytes(len(buf)), "mauled: ciphertext replaced by all zeros"),
-        (lambda buf: bytes([0xFF] * len(buf)), "mauled: ciphertext replaced by all 0xff bytes"),
+        (
+            lambda buf: bytes([0xFF] * len(buf)),
+            "mauled: ciphertext replaced by all 0xff bytes",
+        ),
     ]
     for maul, desc in mauls:
         out.append(mauled_vector(kem, randombytes(32), desc, maul))

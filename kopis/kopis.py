@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 
 from xoflib import turbo_shake128, turbo_shake256
