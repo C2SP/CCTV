@@ -1,0 +1,15 @@
+[package]
+name = "slh-dsa-accumulated"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+slh-dsa = "0.1.0"
+signature = "=2.3.0-pre.4"
+clap = { version = "4", features = ["derive"] }
+sha3 = "0.10"
+hex = "0.4"
+rayon = "1.8"
+
+[profile.dev]
+opt-level = 3
